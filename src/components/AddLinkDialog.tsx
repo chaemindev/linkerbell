@@ -12,67 +12,66 @@ import {
 import { Plus } from "lucide-react"
 
 interface AddLinkDialogProps {
-  categories: { id: number; name: string }[]
-  onAdd: (categoryId: number, title: string, url: string) => void
+  categoryName: string
+  onAdd: (title: string, url: string) => void
+  variant?: "icon"
 }
 
-export function AddLinkDialog({ categories, onAdd }: AddLinkDialogProps) {
+export function AddLinkDialog({ categoryName, onAdd, variant }: AddLinkDialogProps) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
-  const [categoryId, setCategoryId] = useState(0)
-  const effectiveCategoryId = categoryId || categories[0]?.id
 
   const handleSubmit = () => {
-    if (!title || !url) return
-    const targetId = effectiveCategoryId ?? categories[0]?.id
-    if (!targetId) return
-    onAdd(targetId, title, url)
+    if (!title || !url) {
+      alert("입력해주세요.")
+      return
+    }
+    onAdd(title, url)
     setTitle("")
     setUrl("")
     setOpen(false)
   }
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+  const triggerBtn =
+    variant === "icon" ? (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="group h-8 w-8 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-colors"
+      >
+        <Plus className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-90" />
+      </Button>
+    ) : (
       <Button className="bg-slate-700 hover:bg-slate-950 text-white shadow-md hover:shadow-lg transition-all cursor-pointer rounded-full px-3 h-8 border-none font-bold mb-3">
         <Plus className="w-3 h-3" /> 새 링크 추가
       </Button>
-      </DialogTrigger>
+    )
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{triggerBtn}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">새로운 링크 저장</DialogTitle>
+          <DialogTitle className="text-xl font-bold">{categoryName} 링크 추가</DialogTitle>
         </DialogHeader>
         <div className="grid gap-5 py-4">
           <div className="grid gap-2">
-            <label className="text-sm font-semibold text-slate-700">카테고리 선택</label>
-            <select 
-              className="flex h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
-              value={effectiveCategoryId ?? ''}
-              onChange={(e) => setCategoryId(Number(e.target.value))}
-            >
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="grid gap-2">
             <label className="text-sm font-semibold text-slate-700">링크 이름</label>
-            <Input 
-              placeholder="예: 구글" 
+            <Input
+              placeholder="예: 구글"
               className="h-11"
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
           </div>
           <div className="grid gap-2">
             <label className="text-sm font-semibold text-slate-700">URL 주소</label>
-            <Input 
-              placeholder="google.com" 
+            <Input
+              placeholder="google.com"
               className="h-11"
-              value={url} 
-              onChange={(e) => setUrl(e.target.value)} 
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
             />
           </div>
         </div>

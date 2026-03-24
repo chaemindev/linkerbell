@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react"
+import { AddLinkDialog } from "@/components/AddLinkDialog"
 
 interface Link {
   title: string
@@ -6,36 +7,45 @@ interface Link {
 }
 
 interface CategoryCardProps {
+  id: number
   name: string
   links: Link[]
+  onAddLink: (categoryId: number, title: string, url: string) => void
 }
 
-export function CategoryCard({ name, links }: CategoryCardProps) {
+export function CategoryCard({ id, name, links, onAddLink }: CategoryCardProps) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {/* 카테고리 이름  */}
-      <div className="flex items-center gap-2 px-4">
+      <div className="flex shrink-0 items-center gap-2 px-2">
         <div className="w-1 h-4 bg-slate-900 rounded-full" />
-        <h3 className="text-sm font-black text-slate-900 tracking-tight uppercase">
-          {name}
-        </h3>
+        <div className="flex items-center justify-between w-full ">
+          <h3 className="text-sm font-black text-slate-900 tracking-tight uppercase">
+            {name}
+          </h3>
+          <AddLinkDialog
+            categoryName={name}
+            onAdd={(title: string, url: string) => onAddLink(id, title, url)}
+            variant="icon"
+          />
+        </div>
       </div>
 
-      <ul className="space-y-3">
+      <ul className="min-h-0 flex-1 space-y-3 overflow-y-auto">
         {(links ?? []).filter((link) => link?.title != null).map((link, idx) => (
           <li key={idx}>
             <a
               href={link.url ?? '#'}
               target="_blank"
               rel="noreferrer"
-              className="group flex items-center justify-between p-4 px-6 rounded-[40px] bg-[#fff] border border-slate-50 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.06)] hover:bg-slate-50 transition-all duration-300 transform hover:-translate-y-0.5"
+              className="group flex h-21 shrink-0 items-center justify-between overflow-hidden rounded-[40px] border border-slate-50 bg-[#fff] px-6 py-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-[0_8px_25px_rgba(0,0,0,0.06)]"
             >
               {/* 왼쪽 텍스트 영역 */}
-              <div className="flex flex-col">
-                <span className="text-slate-900 text-sm font-bold tracking-tight group-hover:text-slate-950">
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden pr-2">
+                <span className="line-clamp-1 text-sm font-bold tracking-tight text-slate-900 group-hover:text-slate-950">
                   {link.title}
                 </span>
-                <span className="text-slate-400 text-xs font-medium tracking-tight">
+                <span className="text-slate-400 text-xs font-medium tracking-tight line-clamp-2 break-all">
                   {(link.url ?? '').replace(/^https?:\/\//, '')}
                 </span>
               </div>
