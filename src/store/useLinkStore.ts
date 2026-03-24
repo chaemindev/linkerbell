@@ -19,6 +19,7 @@ interface LinkStore {
   categories: Category[]
   fetchCategories: () => Promise<void>
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
+  addCategory: (name: string) => Promise<void>
 }
 
 export const useLinkStore = create<LinkStore>((set) => ({
@@ -76,5 +77,21 @@ export const useLinkStore = create<LinkStore>((set) => ({
     // 저장 성공 시 목록 새로고침
     const { fetchCategories } = useLinkStore.getState()
     await fetchCategories()
-  }
+  },
+
+  // 새 카테고리 추가
+  addCategory: async (name: string) => {
+    const { error } = await supabase
+      .from("categories")
+      .insert([{ category_name: name }])
+
+    if (error) {
+      console.error("[addCategory] 저장 실패:", error.message)
+      alert(`카테고리 저장 실패: ${error.message}\n→ Supabase categories 테이블 RLS INSERT 정책 확인`)
+      return
+    }
+
+    const { fetchCategories } = useLinkStore.getState()
+    await fetchCategories()
+  },
 }))

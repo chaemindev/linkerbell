@@ -1,5 +1,6 @@
 import { useEffect } from "react"
-import { AddLinkDialog } from "@/components/AddLinkDialog"
+import { AddCategoryDialog } from "@/components/AddCategoryDialog"
+// import { AddLinkDialog } from "@/components/AddLinkDialog"
 import { CategoryCard } from "@/components/CategoryCard"
 import { Footer } from "@/components/Footer"
 import { PageTitle } from "./PageTitle"
@@ -8,22 +9,24 @@ import { useLinkStore } from "@/store/useLinkStore"
 export function Container() {
   const categories = useLinkStore((state) => state.categories)
   const fetchCategories = useLinkStore((state) => state.fetchCategories)
-  const addLink = useLinkStore((state) => state.addLink)
+  // const addLink = useLinkStore((state) => state.addLink)
 
   useEffect(() => {
     fetchCategories()
   }, [fetchCategories])
 
-  const handleAddLink = (categoryId: number, title: string, url: string) => {
-    addLink(categoryId, title, url.startsWith("http") ? url : `https://${url}`)
-  }
+  // const addCategory = (categoryId: number, title: string, url: string) => {
+  //   addLink(categoryId, title, url.startsWith("http") ? url : `https://${url}`)
+  // }
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-12">
 
       <PageTitle />
       <div className="flex justify-end mb-1">
-        <AddLinkDialog categories={categories} onAdd={handleAddLink} />
+        {/* 카테고리추가  */}
+        <AddCategoryDialog />
+        {/* <AddLinkDialog categories={categories} onAdd={handleAddLink} /> */}
       </div>
 
 
