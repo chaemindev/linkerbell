@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { AddCategoryDialog } from "@/components/AddCategoryDialog"
-import { CategoryCard } from "@/components/CategoryCard"
+import { LinkCard } from "@/components/LinkCard"
 import { PageTitle } from "./PageTitle"
 import { useLinkStore } from "@/store/useLinkStore"
 
@@ -8,6 +8,7 @@ export function Container() {
   const categories = useLinkStore((state) => state.categories)
   const fetchCategories = useLinkStore((state) => state.fetchCategories)
   const addLink = useLinkStore((state) => state.addLink)
+  const deleteLink = useLinkStore((state) => state.deleteLink)
 
   useEffect(() => {
     fetchCategories()
@@ -15,6 +16,11 @@ export function Container() {
 
   const handleAddLink = (categoryId: number, title: string, url: string) => {
     addLink(categoryId, title, url.startsWith("http") ? url : `https://${url}`)
+  }
+
+  const handleDeleteLink = (linkId: number, title: string) => {
+    if (!window.confirm(`${title} 링크를 삭제할까요?`)) return
+    void deleteLink(linkId)
   }
 
   return (
@@ -26,12 +32,13 @@ export function Container() {
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {categories.map((category) => (
-          <CategoryCard
+          <LinkCard
             key={category.id}
             id={category.id}
             name={category.name}
             links={category.links}
             onAddLink={handleAddLink}
+            onDeleteLink={handleDeleteLink}
           />
         ))}
       </div>
