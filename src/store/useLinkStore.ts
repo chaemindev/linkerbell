@@ -31,6 +31,7 @@ interface LinkStore {
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
   deleteLink: (linkId: number) => Promise<void>
   addCategory: (name: string) => Promise<void>
+  deleteCategory: (categoryId: number) => Promise<void>
 }
 
 export const useLinkStore = create<LinkStore>((set) => ({
@@ -91,32 +92,15 @@ export const useLinkStore = create<LinkStore>((set) => ({
   },
 
   deleteLink: async (linkId: number) => {
-
-    const {error} = await supabase
-    .from("links").delete().eq("id", linkId).select("id")
-
+    const { error } = await supabase.from("links").delete().eq("id", linkId)
 
     if (error) {
       console.error("[deleteLink] 삭제 실패:", error.message)
-      alert(`삭제 실패: ${error.message}\n`)
+      alert(`삭제 실패: ${error.message}`)
       return
     }
 
-    const { fetchCategories } = useLinkStore.getState()
-    await fetchCategories()
-
-    // PostgREST는 삭제된 행이 0개여도 error가 없을 수 있음(RLS 등). 목록에 남아 있으면 실패로 안내.
-    const stillThere = useLinkStore
-      .getState()
-      .categories.some((c) => c.links.some((l) => l.id === linkId))
-
-    if (stillThere) {
-      alert(
-        "삭제 요청은 갔지만 DB에서 행이 지워지지 않았어요.\n" +
-          "Supabase → Authentication 없이 쓰는 경우 links 테이블에 DELETE용 RLS 정책이 있는지 확인하세요.\n" +
-          "(프로젝트의 supabase-rls.sql 의 Allow public delete links 실행 여부)",
-      )
-    }
+    await useLinkStore.getState().fetchCategories()
   },
 
   // 새 카테고리 추가
@@ -133,5 +117,28 @@ export const useLinkStore = create<LinkStore>((set) => ({
 
     const { fetchCategories } = useLinkStore.getState()
     await fetchCategories()
+  },
+
+  deleteCategory: async (categoryId: number) => {
+    const { error: linksError } = await supabase
+      .from("links")
+      .delete()
+      .eq("category_id", categoryId)
+
+    if (linksError) {
+      console.error("[deleteCategory] 링크 삭제 실패:", linksError.message)
+      alert(`링크 삭제 실패: ${linksError.message}`)
+      return
+    }
+
+    const { error: categoryError } = await supabase.from("categories").delete().eq("id", categoryId)
+
+    if (categoryError) {
+      console.error("[deleteCategory] 카테고리 삭제 실패:", categoryError.message)
+      alert(`카테고리 삭제 실패: ${categoryError.message}`)
+      return
+    }
+
+    await useLinkStore.getState().fetchCategories()
   },
 }))

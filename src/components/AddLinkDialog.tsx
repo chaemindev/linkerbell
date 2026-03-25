@@ -38,9 +38,9 @@ export function AddLinkDialog({ categoryName, onAdd, variant }: AddLinkDialogPro
       <Button
         variant="ghost"
         size="icon"
-        className="group h-8 w-8 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-colors"
+        className="h-6 w-6 rounded-full text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-all"
       >
-        <Plus className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-90" />
+        <Plus className="h-3.5 w-3.5" />
       </Button>
     ) : (
       <Button className="bg-slate-700 hover:bg-slate-950 text-white shadow-md hover:shadow-lg transition-all cursor-pointer rounded-full px-3 h-8 border-none font-bold mb-3">

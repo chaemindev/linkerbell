@@ -9,6 +9,7 @@ export function Container() {
   const fetchCategories = useLinkStore((state) => state.fetchCategories)
   const addLink = useLinkStore((state) => state.addLink)
   const deleteLink = useLinkStore((state) => state.deleteLink)
+  const deleteCategory = useLinkStore((state) => state.deleteCategory)
 
   useEffect(() => {
     fetchCategories()
@@ -21,6 +22,10 @@ export function Container() {
   const handleDeleteLink = (linkId: number, title: string) => {
     if (!window.confirm(`${title} 링크를 삭제할까요?`)) return
     void deleteLink(linkId)
+  }
+
+  const handleDeleteCategory = (categoryId: number) => {
+    void deleteCategory(categoryId)
   }
 
   return (
@@ -39,6 +44,7 @@ export function Container() {
             links={category.links}
             onAddLink={handleAddLink}
             onDeleteLink={handleDeleteLink}
+            onDeleteCategory={handleDeleteCategory}
           />
         ))}
       </div>
