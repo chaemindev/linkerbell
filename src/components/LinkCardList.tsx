@@ -17,12 +17,9 @@ export function LinkCardList({ links, onDeleteLink }: LinkCardListProps) {
   const items = (links ?? []).filter((link) => link?.title != null)
 
   return (
-    <ul className="min-h-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto">
+    <ul className="min-h-0 flex-1 space-y-3 overflow-hidden">
       {items.map((link, idx) => (
-        <li
-          key={link.id > 0 ? link.id : `link-${idx}`}
-          className="overflow-hidden"
-        >
+        <li key={link.id > 0 ? link.id : `link-${idx}`}>
           <motion.div
             initial={{ y: 20 }}
             animate={{ y: 0 }}
@@ -32,7 +29,11 @@ export function LinkCardList({ links, onDeleteLink }: LinkCardListProps) {
               delay: idx * 0.04,
             }}
           >
-            <div className="group flex h-15 min-w-85 shrink-0 items-center overflow-hidden rounded-[40px] border border-slate-50 bg-white/70 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
+            <motion.div
+              className="group flex h-15 min-w-85 shrink-0 items-center overflow-hidden rounded-[40px] border border-slate-50 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02),0_8px_30px_-8px_rgba(0,0,0,0.05)] transition-[box-shadow,background-color] duration-420 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-slate-50/80 hover:shadow-[0_2px_4px_rgba(0,0,0,0.03),0_14px_40px_-10px_rgba(0,0,0,0.07)]"
+              whileHover={{ y: -2 }}
+              transition={{ type: "tween", duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+            >
             <a
               href={link.url ?? "#"}
               target="_blank"
@@ -60,7 +61,7 @@ export function LinkCardList({ links, onDeleteLink }: LinkCardListProps) {
                 <X className="h-4 w-4" />
               </Button>
             </div>
-          </div>
+          </motion.div>
           </motion.div>
         </li>
       ))}
