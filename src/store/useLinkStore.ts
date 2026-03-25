@@ -31,6 +31,7 @@ interface LinkStore {
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
   deleteLink: (linkId: number) => Promise<void>
   addCategory: (name: string) => Promise<void>
+  renameCategory: (categoryId: number, name: string) => Promise<boolean>
   deleteCategory: (categoryId: number) => Promise<void>
 }
 
@@ -117,6 +118,25 @@ export const useLinkStore = create<LinkStore>((set) => ({
 
     const { fetchCategories } = useLinkStore.getState()
     await fetchCategories()
+  },
+
+  renameCategory: async (categoryId: number, name: string) => {
+    const trimmed = name.trim()
+    if (!trimmed) return false
+
+    const { error } = await supabase
+      .from("categories")
+      .update({ category_name: trimmed })
+      .eq("id", categoryId)
+
+    if (error) {
+      console.error("[renameCategory] 수정 실패:", error.message)
+      alert(`이름 수정 실패: ${error.message}\n→ categories 테이블 RLS UPDATE 확인`)
+      return false
+    }
+
+    await useLinkStore.getState().fetchCategories()
+    return true
   },
 
   deleteCategory: async (categoryId: number) => {
