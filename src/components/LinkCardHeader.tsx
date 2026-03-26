@@ -56,7 +56,7 @@ export function LinkCardHeader({
             onClick={() => setRenameOpen(true)}
           >
             <Edit2 className="h-3.5 w-3.5" />
-            <span>이름 수정</span>
+            <span className="text-s">카테고리 타이틀 수정</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer gap-2 text-red-600 focus:bg-red-50 focus:text-red-600"
@@ -71,7 +71,7 @@ export function LinkCardHeader({
             }}
           >
             <Trash2 className="h-3.5 w-3.5" />
-            <span>카테고리 삭제</span>
+            <span className="text-s">카테고리 삭제</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -12,11 +12,22 @@ function toInt8Id(value: unknown): number {
   return 0
 }
 
+function toSortOrder(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value)
+    return Number.isFinite(n) ? n : 0
+  }
+  return 0
+}
+
 interface Link {
   id: number
   title: string
   url: string
   category_id: number
+  /** 카테고리 내 수동 정렬 (낮을수록 위) */
+  sort_order: number
 }
 
 interface Category {
@@ -29,13 +40,18 @@ interface LinkStore {
   categories: Category[]
   fetchCategories: () => Promise<void>
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
+  updateLink: (
+    linkId: number,
+    updates: { title?: string; url?: string },
+  ) => Promise<boolean>
   deleteLink: (linkId: number) => Promise<void>
+  reorderLinks: (categoryId: number, orderedLinkIds: number[]) => Promise<void>
   addCategory: (name: string) => Promise<void>
   renameCategory: (categoryId: number, name: string) => Promise<boolean>
   deleteCategory: (categoryId: number) => Promise<void>
 }
 
-export const useLinkStore = create<LinkStore>((set) => ({
+export const useLinkStore = create<LinkStore>((set, get) => ({
   categories: [],
   
   // 🔥 서버에서 데이터 불러오기
@@ -45,6 +61,7 @@ export const useLinkStore = create<LinkStore>((set) => ({
       .from('categories')
       .select('*, links(*)')
       .order('id', { ascending: true })
+      .order('sort_order', { ascending: true, foreignTable: 'links' })
 
     if (error) {
       console.error('[fetchCategories] 에러:', error.message)
@@ -65,7 +82,9 @@ export const useLinkStore = create<LinkStore>((set) => ({
         title: (link.page_title ?? link.title ?? "") as string,
         url: (link.page_url ?? link.url ?? "") as string,
         category_id: toInt8Id(link.category_id ?? link.categoryId ?? row.id),
+        sort_order: toSortOrder(link.sort_order ?? link.sortOrder),
       }))
+      links.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id)
       return {
         id: toInt8Id(row.id),
         name: (row.category_name ?? row.name ?? row.categoryName ?? '미분류') as string,
@@ -77,9 +96,19 @@ export const useLinkStore = create<LinkStore>((set) => ({
 
   // 🔥 서버에 새 링크 저장하기
   addLink: async (category_id: number, title: string, url: string) => {
+    const { data: maxRows } = await supabase
+      .from('links')
+      .select('sort_order')
+      .eq('category_id', category_id)
+      .order('sort_order', { ascending: false })
+      .limit(1)
+
+    const maxOrder = maxRows?.[0] ? toSortOrder((maxRows[0] as { sort_order?: unknown }).sort_order) : -1
+    const nextOrder = maxOrder + 1
+
     const { error } = await supabase
       .from('links')
-      .insert([{ category_id, page_title: title, page_url: url }])
+      .insert([{ category_id, page_title: title, page_url: url, sort_order: nextOrder }])
 
     if (error) {
       console.error('[addLink] 저장 실패:', error.message, error.details)
@@ -90,6 +119,76 @@ export const useLinkStore = create<LinkStore>((set) => ({
     // 저장 성공 시 목록 새로고침
     const { fetchCategories } = useLinkStore.getState()
     await fetchCategories()
+  },
+
+  updateLink: async (linkId: number, updates: { title?: string; url?: string }) => {
+    const patch: Record<string, string> = {}
+    if (updates.title !== undefined) {
+      const t = updates.title.trim()
+      if (!t) return false
+      patch.page_title = t
+    }
+    if (updates.url !== undefined) {
+      const u = updates.url.trim()
+      if (!u) return false
+      patch.page_url = u.startsWith("http") ? u : `https://${u}`
+    }
+    if (Object.keys(patch).length === 0) return false
+
+    const { error } = await supabase.from("links").update(patch).eq("id", linkId)
+
+    if (error) {
+      console.error("[updateLink] 수정 실패:", error.message)
+      alert(`링크 수정 실패: ${error.message}\n→ links 테이블 RLS UPDATE 확인`)
+      return false
+    }
+
+    await useLinkStore.getState().fetchCategories()
+    return true
+  },
+
+  reorderLinks: async (categoryId: number, orderedLinkIds: number[]) => {
+    const prev = get().categories.map((cat) => ({
+      ...cat,
+      links: cat.links.map((l) => ({ ...l })),
+    }))
+
+    const category = get().categories.find((c) => c.id === categoryId)
+    if (!category) return
+
+    const byId = new Map(category.links.map((l) => [l.id, l]))
+    const newLinks = orderedLinkIds
+      .map((id, index) => {
+        const link = byId.get(id)
+        if (!link) return null
+        return { ...link, sort_order: index }
+      })
+      .filter((l): l is Link => l != null)
+
+    if (newLinks.length !== category.links.length) {
+      console.warn("[reorderLinks] id 목록이 현재 링크와 맞지 않아 건너뜀")
+      return
+    }
+
+    set((state) => ({
+      categories: state.categories.map((c) =>
+        c.id === categoryId ? { ...c, links: newLinks } : c,
+      ),
+    }))
+
+    const results = await Promise.all(
+      orderedLinkIds.map((id, index) =>
+        supabase.from("links").update({ sort_order: index }).eq("id", id).eq("category_id", categoryId),
+      ),
+    )
+    const failed = results.find((r) => r.error)
+    if (failed?.error) {
+      console.error("[reorderLinks] 실패:", failed.error.message)
+      alert(`순서 저장 실패: ${failed.error.message}\n→ links.sort_order 컬럼·RLS UPDATE 확인`)
+      set({ categories: prev })
+      await get().fetchCategories()
+      return
+    }
   },
 
   deleteLink: async (linkId: number) => {

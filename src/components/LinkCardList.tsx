@@ -1,6 +1,42 @@
-import { motion } from "framer-motion"
-import { X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, type Dispatch, type SetStateAction } from "react"
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  defaultDropAnimation,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+  type DraggableAttributes,
+  type DraggableSyntheticListeners,
+} from "@dnd-kit/core"
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+import { EditLinkFieldDialog, type LinkEditField } from "@/components/EditLinkFieldDialog"
+import { LinkCardEdit } from "@/components/LinkCardEdit"
+import { cn } from "@/lib/utils"
+
+/** 드롭 시 오버레이가 제자리로 스냅되는 애니메이션 */
+const linkDropAnimation = {
+  ...defaultDropAnimation,
+  duration: 380,
+  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+} as const
+
+/** 리스트가 재배열될 때 다른 항목이 부드럽게 밀리는 전환 */
+const sortableTransition = {
+  duration: 320,
+  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+} as const
 
 export interface LinkCardListItem {
   id: number
@@ -10,67 +46,252 @@ export interface LinkCardListItem {
 
 export interface LinkCardListProps {
   links: LinkCardListItem[]
+  categoryId: number
   onDeleteLink: (linkId: number, title: string) => void
+  onReorderLinks?: (categoryId: number, orderedLinkIds: number[]) => void
 }
 
-export function LinkCardList({ links, onDeleteLink }: LinkCardListProps) {
-  const items = (links ?? []).filter((link) => link?.title != null)
+function LinkRowContent({
+  link,
+  sortableDrag,
+  dragOverlay,
+  menuOpenLinkId,
+  editField,
+  setEditField,
+  setMenuOpenLinkId,
+  onDeleteLink,
+}: {
+  link: LinkCardListItem
+  sortableDrag?: {
+    attributes: DraggableAttributes
+    listeners: DraggableSyntheticListeners | undefined
+  }
+  /** 드래그 중 떠 있는 미리보기 카드 */
+  dragOverlay?: boolean
+  menuOpenLinkId: number | null
+  editField: { link: LinkCardListItem; field: LinkEditField } | null
+  setEditField: Dispatch<
+    SetStateAction<{ link: LinkCardListItem; field: LinkEditField } | null>
+  >
+  setMenuOpenLinkId: Dispatch<SetStateAction<number | null>>
+  onDeleteLink: (linkId: number, title: string) => void
+}) {
+  return (
+    <div
+      className={cn(
+        "group flex h-15 min-w-85 shrink-0 items-center overflow-hidden rounded-[40px] border transition-[box-shadow,background-color,transform] duration-420 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        dragOverlay
+          ? "border-sky-50/90 bg-gradient-to-br from-white via-white to-sky-50/12 shadow-[0_4px_20px_-4px_rgba(240,249,255,0.85),0_2px_8px_-2px_rgba(224,242,254,0.45)]"
+          : "border-slate-50 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02),0_8px_30px_-8px_rgba(0,0,0,0.05)] hover:bg-slate-50/80 hover:shadow-[0_2px_4px_rgba(0,0,0,0.03),0_14px_40px_-10px_rgba(0,0,0,0.07)]",
+        sortableDrag && !dragOverlay && "cursor-grab touch-manipulation active:cursor-grabbing",
+      )}
+      {...sortableDrag?.attributes}
+      {...sortableDrag?.listeners}
+    >
+      <a
+        href={link.url ?? "#"}
+        target="_blank"
+        rel="noreferrer"
+        className="flex min-h-0 min-w-0 flex-1 items-center justify-between overflow-hidden px-6 py-4 pr-2"
+      >
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden pr-2">
+          <span className="line-clamp-1 text-sm font-medium tracking-tight text-slate-900 group-hover:text-slate-950">
+            {link.title}
+          </span>
+        </div>
+      </a>
+      <div
+        className="shrink-0"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <LinkCardEdit
+          keepVisible={menuOpenLinkId === link.id || editField?.link.id === link.id}
+          onMenuOpenChange={(open: boolean) => setMenuOpenLinkId(open ? link.id : null)}
+          onEditTitle={() => setEditField({ link, field: "title" })}
+          onEditUrl={() => setEditField({ link, field: "url" })}
+          onDelete={() => onDeleteLink(link.id, link.title)}
+        />
+      </div>
+    </div>
+  )
+}
+
+function SortableLinkRow({
+  link,
+  dragEnabled,
+  menuOpenLinkId,
+  editField,
+  setEditField,
+  setMenuOpenLinkId,
+  onDeleteLink,
+}: {
+  link: LinkCardListItem
+  dragEnabled: boolean
+  menuOpenLinkId: number | null
+  editField: { link: LinkCardListItem; field: LinkEditField } | null
+  setEditField: Dispatch<
+    SetStateAction<{ link: LinkCardListItem; field: LinkEditField } | null>
+  >
+  setMenuOpenLinkId: Dispatch<SetStateAction<number | null>>
+  onDeleteLink: (linkId: number, title: string) => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: link.id,
+    disabled: !dragEnabled,
+    transition: sortableTransition,
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    ...(isDragging ? { opacity: 0 } : undefined),
+  }
 
   return (
-    <ul className="min-h-0 flex-1 space-y-3 overflow-hidden">
-      {items.map((link, idx) => (
-        <li key={link.id > 0 ? link.id : `link-${idx}`}>
-          <motion.div
-            initial={{ y: 20 }}
-            animate={{ y: 0 }}
-            transition={{
-              duration: 0.45,
-              ease: [0.22, 1, 0.36, 1],
-              delay: idx * 0.04,
-            }}
-          >
-            <motion.div
-              className="group flex h-15 min-w-85 shrink-0 items-center overflow-hidden rounded-[40px] border border-slate-50 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02),0_8px_30px_-8px_rgba(0,0,0,0.05)] transition-[box-shadow,background-color] duration-420 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-slate-50/80 hover:shadow-[0_2px_4px_rgba(0,0,0,0.03),0_14px_40px_-10px_rgba(0,0,0,0.07)]"
-              whileHover={{ y: -2 }}
-              transition={{ type: "tween", duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-            >
-            <a
-              href={link.url ?? "#"}
-              target="_blank"
-              rel="noreferrer"
-              className="flex min-h-0 min-w-0 flex-1 items-center justify-between overflow-hidden px-6 py-4 pr-2 "
-            >
-              <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden pr-2">
-                <span className="line-clamp-1 text-sm font-medium tracking-tight text-slate-900 group-hover:text-slate-950">
-                  {link.title}
-                </span>
-              </div>
-            </a>
-            <div className="flex shrink-0 items-center pr-3">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full text-slate-200 transition-colors hover:bg-slate-200/80 hover:text-slate-600"
-                aria-label="링크 삭제"
-                onClick={(e) => {
-                  e.preventDefault()
-                  onDeleteLink(link.id, link.title)
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+    <li ref={setNodeRef} style={style} className={cn(isDragging && "relative z-10")}>
+      <LinkRowContent
+        link={link}
+        sortableDrag={
+          dragEnabled ? { attributes, listeners } : undefined
+        }
+        menuOpenLinkId={menuOpenLinkId}
+        editField={editField}
+        setEditField={setEditField}
+        setMenuOpenLinkId={setMenuOpenLinkId}
+        onDeleteLink={onDeleteLink}
+      />
+    </li>
+  )
+}
+
+export function LinkCardList({
+  links,
+  categoryId,
+  onDeleteLink,
+  onReorderLinks,
+}: LinkCardListProps) {
+  const items = (links ?? []).filter((link) => link?.title != null)
+  const [activeDragId, setActiveDragId] = useState<number | null>(null)
+  const [editField, setEditField] = useState<{
+    link: LinkCardListItem
+    field: LinkEditField
+  } | null>(null)
+  const [menuOpenLinkId, setMenuOpenLinkId] = useState<number | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const dragEnabled = Boolean(onReorderLinks && items.length > 1)
+  const sortableIds = items.map((l) => l.id)
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(Number(event.active.id))
+  }
+
+  const handleDragCancel = () => {
+    setActiveDragId(null)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveDragId(null)
+    if (!onReorderLinks) return
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = items.findIndex((l) => l.id === active.id)
+    const newIndex = items.findIndex((l) => l.id === over.id)
+    if (oldIndex < 0 || newIndex < 0) return
+    const next = arrayMove(items, oldIndex, newIndex)
+    onReorderLinks(
+      categoryId,
+      next.map((l) => l.id),
+    )
+  }
+
+  const activeDragLink =
+    activeDragId != null ? items.find((l) => l.id === activeDragId) : null
+
+  const listBody = dragEnabled ? (
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragCancel={handleDragCancel}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
+          {items.map((link) => (
+            <SortableLinkRow
+              key={link.id}
+              link={link}
+              dragEnabled={dragEnabled}
+              menuOpenLinkId={menuOpenLinkId}
+              editField={editField}
+              setEditField={setEditField}
+              setMenuOpenLinkId={setMenuOpenLinkId}
+              onDeleteLink={onDeleteLink}
+            />
+          ))}
+        </SortableContext>
+        <DragOverlay dropAnimation={linkDropAnimation} zIndex={60}>
+          {activeDragLink ? (
+            <div className="pointer-events-none min-w-85 scale-[1.015] cursor-grabbing rounded-[40px] shadow-[0_18px_42px_-16px_rgba(240,249,255,0.75),0_10px_22px_-10px_rgba(15,23,42,0.04),0_0_0_1px_rgba(240,249,255,0.65)]">
+              <LinkRowContent
+                dragOverlay
+                link={activeDragLink}
+                menuOpenLinkId={menuOpenLinkId}
+                editField={editField}
+                setEditField={setEditField}
+                setMenuOpenLinkId={setMenuOpenLinkId}
+                onDeleteLink={onDeleteLink}
+              />
             </div>
-          </motion.div>
-          </motion.div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    ) : (
+      items.map((link, idx) => (
+        <li key={link.id > 0 ? link.id : `link-${idx}`}>
+          <LinkRowContent
+            link={link}
+            menuOpenLinkId={menuOpenLinkId}
+            editField={editField}
+            setEditField={setEditField}
+            setMenuOpenLinkId={setMenuOpenLinkId}
+            onDeleteLink={onDeleteLink}
+          />
         </li>
-      ))}
+      ))
+    )
+
+  return (
+    <ul className="min-h-0 flex-1 list-none space-y-3 overflow-hidden p-0">
+      {listBody}
 
       {items.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-[40px] border-2 border-dashed border-slate-100 p-8">
           <p className="text-xs italic text-slate-400">저장된 링크가 없어요</p>
         </div>
       )}
+
+      <EditLinkFieldDialog
+        linkId={editField?.link.id ?? 0}
+        field={editField?.field ?? "title"}
+        currentValue={
+          editField
+            ? editField.field === "title"
+              ? editField.link.title
+              : editField.link.url
+            : ""
+        }
+        linkTitle={editField?.link.title ?? ""}
+        linkUrl={editField?.link.url ?? ""}
+        open={editField !== null}
+        onOpenChange={(next) => {
+          if (!next) setEditField(null)
+        }}
+      />
     </ul>
   )
 }

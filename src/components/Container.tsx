@@ -9,6 +9,7 @@ export function Container() {
   const fetchCategories = useLinkStore((state) => state.fetchCategories)
   const addLink = useLinkStore((state) => state.addLink)
   const deleteLink = useLinkStore((state) => state.deleteLink)
+  const reorderLinks = useLinkStore((state) => state.reorderLinks)
   const deleteCategory = useLinkStore((state) => state.deleteCategory)
 
   useEffect(() => {
@@ -28,6 +29,10 @@ export function Container() {
     void deleteCategory(categoryId)
   }
 
+  const handleReorderLinks = (categoryId: number, orderedLinkIds: number[]) => {
+    void reorderLinks(categoryId, orderedLinkIds)
+  }
+
   return (
     <main className="mx-auto max-w-7xl flex-1 px-6 py-12">
       <PageTitle />
@@ -44,6 +49,7 @@ export function Container() {
             links={category.links}
             onAddLink={handleAddLink}
             onDeleteLink={handleDeleteLink}
+            onReorderLinks={handleReorderLinks}
             onDeleteCategory={handleDeleteCategory}
           />
         ))}

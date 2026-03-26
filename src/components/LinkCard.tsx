@@ -13,6 +13,7 @@ interface LinkCardProps {
   links: Link[]
   onAddLink: (categoryId: number, title: string, url: string) => void
   onDeleteLink: (linkId: number, title: string) => void
+  onReorderLinks?: (categoryId: number, orderedLinkIds: number[]) => void
   onDeleteCategory: (categoryId: number) => void
 }
 
@@ -22,6 +23,7 @@ export function LinkCard({
   links,
   onAddLink,
   onDeleteLink,
+  onReorderLinks,
   onDeleteCategory,
 }: LinkCardProps) {
   return (
@@ -33,7 +35,12 @@ export function LinkCard({
         onDeleteCategory={onDeleteCategory}
       />
 
-      <LinkCardList links={links} onDeleteLink={onDeleteLink} />
+      <LinkCardList
+        categoryId={id}
+        links={links}
+        onDeleteLink={onDeleteLink}
+        onReorderLinks={onReorderLinks}
+      />
     </div>
   )
 }
