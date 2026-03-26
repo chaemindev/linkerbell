@@ -3,7 +3,7 @@ import { Sparkles } from "lucide-react";
 
 export function PageTitle() {
   return (
-<div className="flex flex-col items-center justify-center gap-8 mb-2 border-b border-slate-100 group">
+<div className="flex flex-col items-center justify-center gap-8 mb-5 border-b border-slate-100 group">
   
   {/* [상단]: 텍스트 섹션 (모두 가운데 정렬) */}
   <div className="flex flex-col items-center space-y-2 relative">
