@@ -1,4 +1,4 @@
-import { Edit2, Link2, MoreHorizontal, Trash2 } from "lucide-react"
+import { Edit2, MoreHorizontal, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -11,16 +11,14 @@ import { cn } from "@/lib/utils"
 export interface LinkCardEditProps {
   keepVisible: boolean
   onMenuOpenChange: (open: boolean) => void
-  onEditTitle: () => void
-  onEditUrl: () => void
+  onEditLink: () => void
   onDelete: () => void
 }
 
 export function LinkCardEdit({
   keepVisible,
   onMenuOpenChange,
-  onEditTitle,
-  onEditUrl,
+  onEditLink,
   onDelete,
 }: LinkCardEditProps) {
   return (
@@ -36,14 +34,10 @@ export function LinkCardEdit({
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
-          <DropdownMenuItem className="gap-2" onClick={onEditTitle}>
+        <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuItem className="gap-2" onClick={onEditLink}>
             <Edit2 className="h-3.5 w-3.5" />
-            <span>링크 타이틀 수정</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="gap-2" onClick={onEditUrl}>
-            <Link2 className="h-3.5 w-3.5" />
-            <span>URL 수정</span>
+            <span>링크 수정</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={onDelete}

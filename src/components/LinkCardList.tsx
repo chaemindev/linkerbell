@@ -21,7 +21,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { EditLinkFieldDialog, type LinkEditField } from "@/components/EditLinkFieldDialog"
+import { EditLinkDialog } from "@/components/EditLinkDialog"
 import { LinkCardEdit } from "@/components/LinkCardEdit"
 import { cn } from "@/lib/utils"
 
@@ -56,8 +56,8 @@ function LinkRowContent({
   sortableDrag,
   dragOverlay,
   menuOpenLinkId,
-  editField,
-  setEditField,
+  editingLink,
+  setEditingLink,
   setMenuOpenLinkId,
   onDeleteLink,
 }: {
@@ -69,10 +69,8 @@ function LinkRowContent({
   /** 드래그 중 떠 있는 미리보기 카드 */
   dragOverlay?: boolean
   menuOpenLinkId: number | null
-  editField: { link: LinkCardListItem; field: LinkEditField } | null
-  setEditField: Dispatch<
-    SetStateAction<{ link: LinkCardListItem; field: LinkEditField } | null>
-  >
+  editingLink: LinkCardListItem | null
+  setEditingLink: Dispatch<SetStateAction<LinkCardListItem | null>>
   setMenuOpenLinkId: Dispatch<SetStateAction<number | null>>
   onDeleteLink: (linkId: number, title: string) => void
 }) {
@@ -81,7 +79,7 @@ function LinkRowContent({
       className={cn(
         "group flex h-15 min-w-85 shrink-0 items-center overflow-hidden rounded-[40px] border transition-[box-shadow,background-color,transform] duration-420 ease-[cubic-bezier(0.22,1,0.36,1)]",
         dragOverlay
-          ? "border-sky-50/90 bg-gradient-to-br from-white via-white to-sky-50/12 shadow-[0_4px_20px_-4px_rgba(240,249,255,0.85),0_2px_8px_-2px_rgba(224,242,254,0.45)]"
+          ? "border-sky-50/90 bg-linear-to-br from-white via-white to-sky-50/12 shadow-[0_4px_20px_-4px_rgba(240,249,255,0.85),0_2px_8px_-2px_rgba(224,242,254,0.45)]"
           : "border-slate-50 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02),0_8px_30px_-8px_rgba(0,0,0,0.05)] hover:bg-slate-50/80 hover:shadow-[0_2px_4px_rgba(0,0,0,0.03),0_14px_40px_-10px_rgba(0,0,0,0.07)]",
         sortableDrag && !dragOverlay && "cursor-grab touch-manipulation active:cursor-grabbing",
       )}
@@ -105,10 +103,9 @@ function LinkRowContent({
         onPointerDown={(e) => e.stopPropagation()}
       >
         <LinkCardEdit
-          keepVisible={menuOpenLinkId === link.id || editField?.link.id === link.id}
+          keepVisible={menuOpenLinkId === link.id || editingLink?.id === link.id}
           onMenuOpenChange={(open: boolean) => setMenuOpenLinkId(open ? link.id : null)}
-          onEditTitle={() => setEditField({ link, field: "title" })}
-          onEditUrl={() => setEditField({ link, field: "url" })}
+          onEditLink={() => setEditingLink(link)}
           onDelete={() => onDeleteLink(link.id, link.title)}
         />
       </div>
@@ -120,18 +117,16 @@ function SortableLinkRow({
   link,
   dragEnabled,
   menuOpenLinkId,
-  editField,
-  setEditField,
+  editingLink,
+  setEditingLink,
   setMenuOpenLinkId,
   onDeleteLink,
 }: {
   link: LinkCardListItem
   dragEnabled: boolean
   menuOpenLinkId: number | null
-  editField: { link: LinkCardListItem; field: LinkEditField } | null
-  setEditField: Dispatch<
-    SetStateAction<{ link: LinkCardListItem; field: LinkEditField } | null>
-  >
+  editingLink: LinkCardListItem | null
+  setEditingLink: Dispatch<SetStateAction<LinkCardListItem | null>>
   setMenuOpenLinkId: Dispatch<SetStateAction<number | null>>
   onDeleteLink: (linkId: number, title: string) => void
 }) {
@@ -155,8 +150,8 @@ function SortableLinkRow({
           dragEnabled ? { attributes, listeners } : undefined
         }
         menuOpenLinkId={menuOpenLinkId}
-        editField={editField}
-        setEditField={setEditField}
+        editingLink={editingLink}
+        setEditingLink={setEditingLink}
         setMenuOpenLinkId={setMenuOpenLinkId}
         onDeleteLink={onDeleteLink}
       />
@@ -172,10 +167,7 @@ export function LinkCardList({
 }: LinkCardListProps) {
   const items = (links ?? []).filter((link) => link?.title != null)
   const [activeDragId, setActiveDragId] = useState<number | null>(null)
-  const [editField, setEditField] = useState<{
-    link: LinkCardListItem
-    field: LinkEditField
-  } | null>(null)
+  const [editingLink, setEditingLink] = useState<LinkCardListItem | null>(null)
   const [menuOpenLinkId, setMenuOpenLinkId] = useState<number | null>(null)
 
   const sensors = useSensors(
@@ -227,8 +219,8 @@ export function LinkCardList({
               link={link}
               dragEnabled={dragEnabled}
               menuOpenLinkId={menuOpenLinkId}
-              editField={editField}
-              setEditField={setEditField}
+              editingLink={editingLink}
+              setEditingLink={setEditingLink}
               setMenuOpenLinkId={setMenuOpenLinkId}
               onDeleteLink={onDeleteLink}
             />
@@ -241,8 +233,8 @@ export function LinkCardList({
                 dragOverlay
                 link={activeDragLink}
                 menuOpenLinkId={menuOpenLinkId}
-                editField={editField}
-                setEditField={setEditField}
+                editingLink={editingLink}
+                setEditingLink={setEditingLink}
                 setMenuOpenLinkId={setMenuOpenLinkId}
                 onDeleteLink={onDeleteLink}
               />
@@ -256,8 +248,8 @@ export function LinkCardList({
           <LinkRowContent
             link={link}
             menuOpenLinkId={menuOpenLinkId}
-            editField={editField}
-            setEditField={setEditField}
+            editingLink={editingLink}
+            setEditingLink={setEditingLink}
             setMenuOpenLinkId={setMenuOpenLinkId}
             onDeleteLink={onDeleteLink}
           />
@@ -275,21 +267,13 @@ export function LinkCardList({
         </div>
       )}
 
-      <EditLinkFieldDialog
-        linkId={editField?.link.id ?? 0}
-        field={editField?.field ?? "title"}
-        currentValue={
-          editField
-            ? editField.field === "title"
-              ? editField.link.title
-              : editField.link.url
-            : ""
-        }
-        linkTitle={editField?.link.title ?? ""}
-        linkUrl={editField?.link.url ?? ""}
-        open={editField !== null}
+      <EditLinkDialog
+        linkId={editingLink?.id ?? 0}
+        initialTitle={editingLink?.title ?? ""}
+        initialUrl={editingLink?.url ?? ""}
+        open={editingLink !== null}
         onOpenChange={(next) => {
-          if (!next) setEditField(null)
+          if (!next) setEditingLink(null)
         }}
       />
     </ul>

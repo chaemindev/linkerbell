@@ -11,20 +11,21 @@ export function PageTitle() {
       SSG.COM
     </span>
 
-    <h2 className="text-5xl font-[600] tracking-[-0.05em] text-slate-950 flex items-center gap-3 leading-none pt-6">
-      LINK ARCHIVE
+    <h2 className="text-5xl font-semibold tracking-[-0.05em] text-slate-950 flex items-center gap-3 leading-none pt-6">
+       LinkerBell
       <div className="relative inline-flex items-center justify-center p-2 rounded-[18px] bg-[#A7F3D0] transition-all duration-300 ease-out hover:scale-110 hover:rotate-3 shadow-sm cursor-default overflow-hidden group/sparkle">
+        
         {/* 아이콘: 부모(group/sparkle)에 마우스 올리면 회전하고 커짐 */}
-        <Sparkles className="w-5 h-5 text-[#064E3B] fill-[#064E3B] rotate-[10deg] transition-transform duration-500 group-hover/sparkle:rotate-[45deg] group-hover/sparkle:scale-110" />
+        <Sparkles className="w-5 h-5 text-[#064E3B] fill-[#064E3B] rotate-10 transition-transform duration-500 group-hover/sparkle:rotate-45 group-hover/sparkle:scale-110" />
         {/* 호버 시 슥 지나가는 광택 효과  */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover/sparkle:translate-x-full transition-transform duration-1000" />
+        <div className="absolute inset-0 bg-linear-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover/sparkle:translate-x-full transition-transform duration-1000" />
         {/* 은은한 배경 오버레이 */}
         <div className="absolute inset-0 bg-[#064E3B]/5 opacity-0 group-hover/sparkle:opacity-100 transition-opacity" />
       </div>
     </h2>
     <div className="flex items-center gap-3">
       <span className="text-[9px] font-bold text-slate-400 tracking-[0.3em] uppercase">
-        Web Dev Team
+       Web Dev Team  LINK ARCHIVE
       </span>
     </div>
   </div>
