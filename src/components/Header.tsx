@@ -95,46 +95,48 @@ export default function Header() {
           </div>
         </div>
 
-        <div
-          ref={containerRef}
-          className={cn(
-            "group relative shrink-0 overflow-hidden rounded-full transition-[max-width,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            searchExpanded
-              ? "max-w-[min(100%,18rem)] border border-input bg-background shadow-[0_1px_2px_rgba(15,23,42,0.04)] focus-within:border-pink-200/70 focus-within:shadow-[0_0_0_1px_rgba(255,228,235,0.95),0_0_10px_3px_rgba(251,207,216,0.38),0_3px_14px_-5px_rgba(244,194,199,0.3)] sm:max-w-xs dark:focus-within:border-pink-400/30 dark:focus-within:shadow-[0_0_0_1px_rgba(251,182,198,0.22),0_0_12px_4px_rgba(236,72,153,0.14),0_4px_16px_-6px_rgba(157,23,77,0.2)]"
-              : "max-w-10 border-transparent bg-transparent shadow-none",
-          )}
-        >
-          <div className="flex h-10 w-[min(100%,18rem)] max-w-[calc(100vw-2rem)] sm:w-80">
-            <button
-              type="button"
-              className="text-muted-foreground hover:text-pink-400/85 dark:hover:text-pink-300/75 flex h-10 w-10 shrink-0 items-center justify-center transition-colors duration-200 ease-out group-focus-within:text-pink-400/75 focus-visible:outline-none dark:group-focus-within:text-pink-300/65"
-              aria-label={searchExpanded ? "검색" : "검색 열기"}
-              aria-expanded={searchExpanded}
-              onClick={() => {
-                if (!searchExpanded) setSearchExpanded(true)
-                else inputRef.current?.focus()
-              }}
-            >
-              <Search className="size-4 shrink-0" strokeWidth={2.25} />
-            </button>
-            <input
-              ref={inputRef}
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="검색"
-              autoComplete="off"
-              className={cn(
-                "text-foreground placeholder:text-muted-foreground h-10 min-w-0 flex-1 border-0 bg-transparent py-2 pr-3 text-sm outline-none transition-opacity duration-200 ease-out focus-visible:ring-0 focus-visible:ring-offset-0",
-                searchExpanded
-                  ? "pointer-events-auto opacity-100"
-                  : "pointer-events-none opacity-0",
-              )}
-              aria-label="링크 검색"
-              aria-expanded={showPanel}
-              aria-controls="header-search-results"
-              aria-autocomplete="list"
-            />
+        <div ref={containerRef} className="relative shrink-0">
+          {/* overflow-hidden은 펼침 클립용으로만 한 줄에 적용. 여기 두면 드롭다운이 잘려 검색이 안 되는 것처럼 보임 */}
+          <div
+            className={cn(
+              "group overflow-hidden rounded-full transition-[max-width,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+              searchExpanded
+                ? "max-w-[min(100%,18rem)] border border-input bg-background shadow-[0_1px_2px_rgba(15,23,42,0.04)] focus-within:border-pink-200/70 focus-within:shadow-[0_0_0_1px_rgba(255,228,235,0.95),0_0_10px_3px_rgba(251,207,216,0.38),0_3px_14px_-5px_rgba(244,194,199,0.3)] sm:max-w-xs dark:focus-within:border-pink-400/30 dark:focus-within:shadow-[0_0_0_1px_rgba(251,182,198,0.22),0_0_12px_4px_rgba(236,72,153,0.14),0_4px_16px_-6px_rgba(157,23,77,0.2)]"
+                : "max-w-10 border-transparent bg-transparent shadow-none",
+            )}
+          >
+            <div className="flex h-10 w-[min(100%,18rem)] max-w-[calc(100vw-2rem)] sm:w-80">
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-pink-400/85 dark:hover:text-pink-300/75 flex h-10 w-10 shrink-0 items-center justify-center transition-colors duration-200 ease-out group-focus-within:text-pink-400/75 focus-visible:outline-none dark:group-focus-within:text-pink-300/65"
+                aria-label={searchExpanded ? "검색" : "검색 열기"}
+                aria-expanded={searchExpanded}
+                onClick={() => {
+                  if (!searchExpanded) setSearchExpanded(true)
+                  else inputRef.current?.focus()
+                }}
+              >
+                <Search className="size-4 shrink-0" strokeWidth={2.25} />
+              </button>
+              <input
+                ref={inputRef}
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="검색"
+                autoComplete="off"
+                className={cn(
+                  "text-foreground placeholder:text-muted-foreground h-10 min-w-0 flex-1 border-0 bg-transparent py-2 pr-3 text-sm outline-none transition-opacity duration-200 ease-out focus-visible:ring-0 focus-visible:ring-offset-0",
+                  searchExpanded
+                    ? "pointer-events-auto opacity-100"
+                    : "pointer-events-none opacity-0",
+                )}
+                aria-label="링크 검색"
+                aria-expanded={showPanel}
+                aria-controls="header-search-results"
+                aria-autocomplete="list"
+              />
+            </div>
           </div>
 
           {showPanel ? (
