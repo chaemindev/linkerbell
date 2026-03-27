@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { Search } from "lucide-react"
 import FairyLogo from "@/components/common/FairyLogo"
 import { openLinkInNewTab } from "@/lib/url"
+import { cn } from "@/lib/utils"
 import { useLinkStore } from "@/store/useLinkStore"
 
 type SearchGroup = {
@@ -41,30 +42,41 @@ function buildSearchGroups(
 export default function Header() {
   const categories = useLinkStore((s) => s.categories)
   const [query, setQuery] = useState("")
-  const [panelOpen, setPanelOpen] = useState(false)
+  const [searchExpanded, setSearchExpanded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const groups = useMemo(() => buildSearchGroups(categories, query), [categories, query])
-  const showPanel = panelOpen && query.trim().length > 0
+  const hasQuery = query.trim().length > 0
+  const showPanel = searchExpanded && hasQuery
 
   useEffect(() => {
-    if (!panelOpen) return
+    if (!searchExpanded) return
+    inputRef.current?.focus()
+  }, [searchExpanded])
+
+  useEffect(() => {
+    if (!searchExpanded) return
     const onDoc = (e: MouseEvent) => {
       if (containerRef.current?.contains(e.target as Node)) return
-      setPanelOpen(false)
+      setSearchExpanded(false)
+      setQuery("")
     }
     document.addEventListener("mousedown", onDoc)
     return () => document.removeEventListener("mousedown", onDoc)
-  }, [panelOpen])
+  }, [searchExpanded])
 
   useEffect(() => {
-    if (!showPanel) return
+    if (!searchExpanded) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPanelOpen(false)
+      if (e.key === "Escape") {
+        setSearchExpanded(false)
+        setQuery("")
+      }
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [showPanel])
+  }, [searchExpanded])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm">
@@ -85,27 +97,45 @@ export default function Header() {
 
         <div
           ref={containerRef}
-          className="group relative w-full max-w-[min(100%,18rem)] shrink-0 sm:max-w-xs"
+          className={cn(
+            "group relative shrink-0 overflow-hidden rounded-full transition-[max-width,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            searchExpanded
+              ? "max-w-[min(100%,18rem)] border border-input bg-background shadow-[0_1px_2px_rgba(15,23,42,0.04)] focus-within:border-pink-200/70 focus-within:shadow-[0_0_0_1px_rgba(255,228,235,0.95),0_0_10px_3px_rgba(251,207,216,0.38),0_3px_14px_-5px_rgba(244,194,199,0.3)] sm:max-w-xs dark:focus-within:border-pink-400/30 dark:focus-within:shadow-[0_0_0_1px_rgba(251,182,198,0.22),0_0_12px_4px_rgba(236,72,153,0.14),0_4px_16px_-6px_rgba(157,23,77,0.2)]"
+              : "max-w-10 border-transparent bg-transparent shadow-none",
+          )}
         >
-          <span
-            className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center transition-colors duration-300 ease-out group-focus-within:text-pink-400/75 dark:group-focus-within:text-pink-300/65"
-            aria-hidden
-          >
-            <Search className="size-4 shrink-0" strokeWidth={2.25} />
-          </span>
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => setPanelOpen(true)}
-            placeholder="검색"
-            autoComplete="off"
-            className="border-input bg-background placeholder:text-muted-foreground relative z-0 h-10 w-full rounded-full border py-2 pl-9 pr-3 text-sm shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-[box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:border-pink-200/70 focus-visible:shadow-[0_0_0_1px_rgba(255,228,235,0.95),0_0_10px_3px_rgba(251,207,216,0.38),0_3px_14px_-5px_rgba(244,194,199,0.3)] dark:focus-visible:border-pink-400/30 dark:focus-visible:shadow-[0_0_0_1px_rgba(251,182,198,0.22),0_0_12px_4px_rgba(236,72,153,0.14),0_4px_16px_-6px_rgba(157,23,77,0.2)]"
-            aria-label="링크 검색"
-            aria-expanded={showPanel}
-            aria-controls="header-search-results"
-            aria-autocomplete="list"
-          />
+          <div className="flex h-10 w-[min(100%,18rem)] max-w-[calc(100vw-2rem)] sm:w-80">
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-pink-400/85 dark:hover:text-pink-300/75 flex h-10 w-10 shrink-0 items-center justify-center transition-colors duration-200 ease-out group-focus-within:text-pink-400/75 focus-visible:outline-none dark:group-focus-within:text-pink-300/65"
+              aria-label={searchExpanded ? "검색" : "검색 열기"}
+              aria-expanded={searchExpanded}
+              onClick={() => {
+                if (!searchExpanded) setSearchExpanded(true)
+                else inputRef.current?.focus()
+              }}
+            >
+              <Search className="size-4 shrink-0" strokeWidth={2.25} />
+            </button>
+            <input
+              ref={inputRef}
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="검색"
+              autoComplete="off"
+              className={cn(
+                "text-foreground placeholder:text-muted-foreground h-10 min-w-0 flex-1 border-0 bg-transparent py-2 pr-3 text-sm outline-none transition-opacity duration-200 ease-out focus-visible:ring-0 focus-visible:ring-offset-0",
+                searchExpanded
+                  ? "pointer-events-auto opacity-100"
+                  : "pointer-events-none opacity-0",
+              )}
+              aria-label="링크 검색"
+              aria-expanded={showPanel}
+              aria-controls="header-search-results"
+              aria-autocomplete="list"
+            />
+          </div>
 
           {showPanel ? (
             <div
@@ -132,7 +162,8 @@ export default function Header() {
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => {
                               openLinkInNewTab(link.url)
-                              setPanelOpen(false)
+                              setSearchExpanded(false)
+                              setQuery("")
                             }}
                           >
                             <span className="line-clamp-2">{link.title}</span>
