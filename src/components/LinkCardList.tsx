@@ -24,6 +24,17 @@ export interface LinkCardListProps {
   onReorderLinks?: (categoryId: number, orderedLinkIds: number[]) => void
 }
 
+function normalizeLinkHref(raw: string | undefined): string | null {
+  const t = raw?.trim() ?? ""
+  if (!t) return null
+  return t.startsWith("http://") || t.startsWith("https://") ? t : `https://${t}`
+}
+
+function openLinkInNewTab(raw: string | undefined) {
+  const href = normalizeLinkHref(raw)
+  if (href) window.open(href, "_blank", "noopener,noreferrer")
+}
+
 export function LinkRowContent({
   link,
   sortableDrag,
@@ -54,7 +65,7 @@ export function LinkRowContent({
         dragOverlay
           ? "border-sky-50/90 bg-linear-to-br from-white via-white to-sky-50/12 shadow-[0_4px_20px_-4px_rgba(240,249,255,0.85),0_2px_8px_-2px_rgba(224,242,254,0.45)]"
           : "border-slate-50 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02),0_8px_30px_-8px_rgba(0,0,0,0.05)] hover:bg-slate-50/80 hover:shadow-[0_2px_4px_rgba(0,0,0,0.03),0_14px_40px_-10px_rgba(0,0,0,0.07)]",
-        sortableDrag && !dragOverlay && "cursor-grab touch-manipulation active:cursor-grabbing",
+        sortableDrag && !dragOverlay && "cursor-grab touch-manipulation active:cursor-grabbing [-webkit-touch-callout:none]",
       )}
       onContextMenu={(e) => {
         if (sortableDrag) e.preventDefault()
@@ -62,23 +73,18 @@ export function LinkRowContent({
       {...sortableDrag?.attributes}
       {...sortableDrag?.listeners}
     >
-      <a
-        href={link.url ?? "#"}
-        target="_blank"
-        rel="noreferrer"
-        draggable={false}
-        className="flex min-h-0 min-w-0 flex-1 select-none items-center justify-between overflow-hidden px-6 py-4 pr-2 [touch-callout:none]"
-        onDragStart={(e) => e.preventDefault()}
-        onContextMenu={(e) => {
-          if (sortableDrag) e.preventDefault()
-        }}
+      <button
+        type="button"
+        className="flex min-h-0 min-w-0 flex-1 cursor-pointer select-none items-center justify-between overflow-hidden border-0 bg-transparent px-6 py-4 pr-2 text-left [-webkit-touch-callout:none] [touch-callout:none] touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40 focus-visible:ring-offset-2"
+        onClick={() => openLinkInNewTab(link.url)}
+        aria-label={`${link.title}, 새 탭에서 열기`}
       >
         <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden pr-2">
           <span className="line-clamp-1 text-sm font-medium tracking-tight text-slate-900 group-hover:text-slate-950">
             {link.title}
           </span>
         </div>
-      </a>
+      </button>
       <div
         className="shrink-0 touch-manipulation"
         onPointerDown={(e) => e.stopPropagation()}
