@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { MoreVertical, Trash2, Edit2 } from "lucide-react"
+import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core"
+import { GripVertical, MoreVertical, Trash2, Edit2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,10 @@ export interface LinkCardHeaderProps {
   categoryName: string
   onAddLink: (categoryId: number, title: string, url: string) => void
   onDeleteCategory: (categoryId: number) => void
+  /** 카테고리 순서 변경: 타이틀 줄만 드래그 핸들 (@dnd-kit useSortable) */
+  categoryDragActivatorNodeRef?: (element: HTMLElement | null) => void
+  categoryDragAttributes?: DraggableAttributes
+  categoryDragListeners?: DraggableSyntheticListeners | undefined
 }
 
 export function LinkCardHeader({
@@ -22,16 +27,41 @@ export function LinkCardHeader({
   categoryName,
   onAddLink,
   onDeleteCategory,
+  categoryDragActivatorNodeRef,
+  categoryDragAttributes,
+  categoryDragListeners,
 }: LinkCardHeaderProps) {
   const [renameOpen, setRenameOpen] = useState(false)
 
   return (
     <div className="flex shrink-0 items-center justify-between px-2">
-      <div className="flex items-center gap-2">
-        <div className="h-4 w-1 rounded-full bg-slate-900" />
-        <h3 className="text-sm font-black uppercase tracking-tight text-slate-900">
-          {categoryName}
-        </h3>
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        {categoryDragActivatorNodeRef != null &&
+        categoryDragAttributes != null &&
+        categoryDragListeners != null ? (
+          <div
+            ref={categoryDragActivatorNodeRef}
+            className="flex min-w-0 cursor-grab touch-manipulation items-center gap-1.5 active:cursor-grabbing"
+            {...categoryDragAttributes}
+            {...categoryDragListeners}
+          >
+            <GripVertical
+              className="h-4 w-4 shrink-0 text-slate-400"
+              aria-hidden
+            />
+            <div className="h-4 w-1 shrink-0 rounded-full bg-slate-900" />
+            <h3 className="min-w-0 truncate text-sm font-black uppercase tracking-tight text-slate-900">
+              {categoryName}
+            </h3>
+          </div>
+        ) : (
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="h-4 w-1 shrink-0 rounded-full bg-slate-900" />
+            <h3 className="min-w-0 truncate text-sm font-black uppercase tracking-tight text-slate-900">
+              {categoryName}
+            </h3>
+          </div>
+        )}
         <AddLinkDialog
           categoryName={categoryName}
           onAdd={(title, url) => onAddLink(categoryId, title, url)}

@@ -1,43 +1,15 @@
 import { useState, type Dispatch, type SetStateAction } from "react"
+import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core"
 import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  defaultDropAnimation,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
-  type DraggableAttributes,
-  type DraggableSyntheticListeners,
-} from "@dnd-kit/core"
-import {
-  arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { EditLinkDialog } from "@/components/EditLinkDialog"
 import { LinkCardEdit } from "@/components/LinkCardEdit"
+import { sortableTransition } from "@/lib/dndSortable"
 import { cn } from "@/lib/utils"
-
-/** 드롭 시 오버레이가 제자리로 스냅되는 애니메이션 */
-const linkDropAnimation = {
-  ...defaultDropAnimation,
-  duration: 380,
-  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-} as const
-
-/** 리스트가 재배열될 때 다른 항목이 부드럽게 밀리는 전환 */
-const sortableTransition = {
-  duration: 320,
-  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-} as const
 
 export interface LinkCardListItem {
   id: number
@@ -52,7 +24,7 @@ export interface LinkCardListProps {
   onReorderLinks?: (categoryId: number, orderedLinkIds: number[]) => void
 }
 
-function LinkRowContent({
+export function LinkRowContent({
   link,
   sortableDrag,
   dragOverlay,
@@ -125,6 +97,7 @@ function LinkRowContent({
 
 function SortableLinkRow({
   link,
+  categoryId,
   dragEnabled,
   menuOpenLinkId,
   editingLink,
@@ -133,6 +106,7 @@ function SortableLinkRow({
   onDeleteLink,
 }: {
   link: LinkCardListItem
+  categoryId: number
   dragEnabled: boolean
   menuOpenLinkId: number | null
   editingLink: LinkCardListItem | null
@@ -141,9 +115,10 @@ function SortableLinkRow({
   onDeleteLink: (linkId: number, title: string) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: link.id,
+    id: `link-${link.id}`,
     disabled: !dragEnabled,
     transition: sortableTransition,
+    data: { type: "link" as const, categoryId },
   })
 
   const style = {
@@ -176,104 +151,46 @@ export function LinkCardList({
   onReorderLinks,
 }: LinkCardListProps) {
   const items = (links ?? []).filter((link) => link?.title != null)
-  const [activeDragId, setActiveDragId] = useState<number | null>(null)
   const [editingLink, setEditingLink] = useState<LinkCardListItem | null>(null)
   const [menuOpenLinkId, setMenuOpenLinkId] = useState<number | null>(null)
 
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: { distance: 10 },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 6,
-      },
-    }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  )
-
   const dragEnabled = Boolean(onReorderLinks && items.length > 1)
-  const sortableIds = items.map((l) => l.id)
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveDragId(Number(event.active.id))
-  }
-
-  const handleDragCancel = () => {
-    setActiveDragId(null)
-  }
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveDragId(null)
-    if (!onReorderLinks) return
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const oldIndex = items.findIndex((l) => l.id === active.id)
-    const newIndex = items.findIndex((l) => l.id === over.id)
-    if (oldIndex < 0 || newIndex < 0) return
-    const next = arrayMove(items, oldIndex, newIndex)
-    onReorderLinks(
-      categoryId,
-      next.map((l) => l.id),
-    )
-  }
-
-  const activeDragLink =
-    activeDragId != null ? items.find((l) => l.id === activeDragId) : null
+  const sortableIds = items.map((l) => `link-${l.id}`)
 
   const listBody = dragEnabled ? (
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragCancel={handleDragCancel}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-          {items.map((link) => (
-            <SortableLinkRow
-              key={link.id}
-              link={link}
-              dragEnabled={dragEnabled}
-              menuOpenLinkId={menuOpenLinkId}
-              editingLink={editingLink}
-              setEditingLink={setEditingLink}
-              setMenuOpenLinkId={setMenuOpenLinkId}
-              onDeleteLink={onDeleteLink}
-            />
-          ))}
-        </SortableContext>
-        <DragOverlay dropAnimation={linkDropAnimation} zIndex={60}>
-          {activeDragLink ? (
-            <div className="pointer-events-none min-w-85 scale-[1.015] cursor-grabbing rounded-[40px] shadow-[0_18px_42px_-16px_rgba(240,249,255,0.75),0_10px_22px_-10px_rgba(15,23,42,0.04),0_0_0_1px_rgba(240,249,255,0.65)]">
-              <LinkRowContent
-                dragOverlay
-                link={activeDragLink}
-                menuOpenLinkId={menuOpenLinkId}
-                editingLink={editingLink}
-                setEditingLink={setEditingLink}
-                setMenuOpenLinkId={setMenuOpenLinkId}
-                onDeleteLink={onDeleteLink}
-              />
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
-    ) : (
-      items.map((link, idx) => (
-        <li key={link.id > 0 ? link.id : `link-${idx}`}>
-          <LinkRowContent
-            link={link}
-            menuOpenLinkId={menuOpenLinkId}
-            editingLink={editingLink}
-            setEditingLink={setEditingLink}
-            setMenuOpenLinkId={setMenuOpenLinkId}
-            onDeleteLink={onDeleteLink}
-          />
-        </li>
-      ))
-    )
+    <SortableContext
+      id={`links-${categoryId}`}
+      items={sortableIds}
+      strategy={verticalListSortingStrategy}
+    >
+      {items.map((link) => (
+        <SortableLinkRow
+          key={link.id}
+          link={link}
+          categoryId={categoryId}
+          dragEnabled={dragEnabled}
+          menuOpenLinkId={menuOpenLinkId}
+          editingLink={editingLink}
+          setEditingLink={setEditingLink}
+          setMenuOpenLinkId={setMenuOpenLinkId}
+          onDeleteLink={onDeleteLink}
+        />
+      ))}
+    </SortableContext>
+  ) : (
+    items.map((link, idx) => (
+      <li key={link.id > 0 ? link.id : `link-${idx}`}>
+        <LinkRowContent
+          link={link}
+          menuOpenLinkId={menuOpenLinkId}
+          editingLink={editingLink}
+          setEditingLink={setEditingLink}
+          setMenuOpenLinkId={setMenuOpenLinkId}
+          onDeleteLink={onDeleteLink}
+        />
+      </li>
+    ))
+  )
 
   return (
     <ul className="min-h-0 flex-1 list-none space-y-3 overflow-hidden p-0">

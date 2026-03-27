@@ -1,3 +1,4 @@
+import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core"
 import { LinkCardHeader } from "@/components/LinkCardHeader"
 import { LinkCardList } from "@/components/LinkCardList"
 
@@ -15,6 +16,9 @@ interface LinkCardProps {
   onDeleteLink: (linkId: number, title: string) => void
   onReorderLinks?: (categoryId: number, orderedLinkIds: number[]) => void
   onDeleteCategory: (categoryId: number) => void
+  categoryDragActivatorNodeRef?: (element: HTMLElement | null) => void
+  categoryDragAttributes?: DraggableAttributes
+  categoryDragListeners?: DraggableSyntheticListeners | undefined
 }
 
 export function LinkCard({
@@ -25,6 +29,9 @@ export function LinkCard({
   onDeleteLink,
   onReorderLinks,
   onDeleteCategory,
+  categoryDragActivatorNodeRef,
+  categoryDragAttributes,
+  categoryDragListeners,
 }: LinkCardProps) {
   return (
     <div className="flex flex-col gap-3">
@@ -33,6 +40,9 @@ export function LinkCard({
         categoryName={name}
         onAddLink={onAddLink}
         onDeleteCategory={onDeleteCategory}
+        categoryDragActivatorNodeRef={categoryDragActivatorNodeRef}
+        categoryDragAttributes={categoryDragAttributes}
+        categoryDragListeners={categoryDragListeners}
       />
 
       <LinkCardList

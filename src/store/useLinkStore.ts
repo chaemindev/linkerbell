@@ -33,6 +33,8 @@ interface Link {
 interface Category {
   id: number
   name: string
+  /** 카테고리 수동 정렬 (낮을수록 앞) */
+  sort_order: number
   links: Link[]
 }
 
@@ -46,6 +48,7 @@ interface LinkStore {
   ) => Promise<boolean>
   deleteLink: (linkId: number) => Promise<void>
   reorderLinks: (categoryId: number, orderedLinkIds: number[]) => Promise<void>
+  reorderCategories: (orderedCategoryIds: number[]) => Promise<void>
   addCategory: (name: string) => Promise<void>
   renameCategory: (categoryId: number, name: string) => Promise<boolean>
   deleteCategory: (categoryId: number) => Promise<void>
@@ -60,7 +63,7 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
     const { data, error } = await supabase
       .from('categories')
       .select('*, links(*)')
-      .order('id', { ascending: true })
+      .order('sort_order', { ascending: true })
       .order('sort_order', { ascending: true, foreignTable: 'links' })
 
     if (error) {
@@ -88,6 +91,7 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
       return {
         id: toInt8Id(row.id),
         name: (row.category_name ?? row.name ?? row.categoryName ?? '미분류') as string,
+        sort_order: toSortOrder(row.sort_order ?? row.sortOrder),
         links,
       }
     })
@@ -191,6 +195,46 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
     }
   },
 
+  reorderCategories: async (orderedCategoryIds: number[]) => {
+    const prev = get().categories.map((cat) => ({
+      ...cat,
+      links: cat.links.map((l) => ({ ...l })),
+    }))
+
+    const byId = new Map(get().categories.map((c) => [c.id, c]))
+    const nextCategories = orderedCategoryIds
+      .map((id) => byId.get(id))
+      .filter((c): c is Category => c != null)
+
+    if (
+      nextCategories.length !== get().categories.length ||
+      nextCategories.length !== orderedCategoryIds.length
+    ) {
+      console.warn("[reorderCategories] id 목록이 현재 카테고리와 맞지 않아 건너뜀")
+      return
+    }
+
+    set((state) => ({
+      categories: orderedCategoryIds
+        .map((id) => state.categories.find((c) => c.id === id))
+        .filter((c): c is Category => c != null)
+        .map((c, index) => ({ ...c, sort_order: index })),
+    }))
+
+    const results = await Promise.all(
+      orderedCategoryIds.map((id, index) =>
+        supabase.from("categories").update({ sort_order: index }).eq("id", id),
+      ),
+    )
+    const failed = results.find((r) => r.error)
+    if (failed?.error) {
+      console.error("[reorderCategories] 실패:", failed.error.message)
+      alert(`카테고리 순서 저장 실패: ${failed.error.message}\n→ categories.sort_order 컬럼·RLS UPDATE 확인`)
+      set({ categories: prev })
+      await get().fetchCategories()
+    }
+  },
+
   deleteLink: async (linkId: number) => {
     const { error } = await supabase.from("links").delete().eq("id", linkId)
 
@@ -205,9 +249,20 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
 
   // 새 카테고리 추가
   addCategory: async (name: string) => {
+    const { data: maxRows } = await supabase
+      .from("categories")
+      .select("sort_order")
+      .order("sort_order", { ascending: false })
+      .limit(1)
+
+    const maxOrder = maxRows?.[0]
+      ? toSortOrder((maxRows[0] as { sort_order?: unknown }).sort_order)
+      : -1
+    const nextOrder = maxOrder + 1
+
     const { error } = await supabase
       .from("categories")
-      .insert([{ category_name: name }])
+      .insert([{ category_name: name, sort_order: nextOrder }])
 
     if (error) {
       console.error("[addCategory] 저장 실패:", error.message)
