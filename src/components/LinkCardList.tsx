@@ -9,6 +9,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { EditLinkDialog } from "@/components/EditLinkDialog"
 import { LinkCardEdit } from "@/components/LinkCardEdit"
 import { sortableTransition } from "@/lib/dndSortable"
+import { openLinkInNewTab } from "@/lib/url"
 import { cn } from "@/lib/utils"
 
 export interface LinkCardListItem {
@@ -22,17 +23,6 @@ export interface LinkCardListProps {
   categoryId: number
   onDeleteLink: (linkId: number, title: string) => void
   onReorderLinks?: (categoryId: number, orderedLinkIds: number[]) => void
-}
-
-function normalizeLinkHref(raw: string | undefined): string | null {
-  const t = raw?.trim() ?? ""
-  if (!t) return null
-  return t.startsWith("http://") || t.startsWith("https://") ? t : `https://${t}`
-}
-
-function openLinkInNewTab(raw: string | undefined) {
-  const href = normalizeLinkHref(raw)
-  if (href) window.open(href, "_blank", "noopener,noreferrer")
 }
 
 export function LinkRowContent({
