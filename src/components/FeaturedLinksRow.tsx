@@ -44,14 +44,14 @@ export interface FeaturedLinkItem {
 
 export interface FeaturedLinksRowProps {
   links?: FeaturedLinkItem[]
-  /** 스포트라이트 링크 추가 — 다이얼로그 등 연결 */
+  /** 스포트라이트 링크 추가 버튼 — 다이얼로그 열기 등 */
   onAddClick?: () => void
 }
 
 const SECTION_HEADING_ID = "featured-links-heading"
 
 export function FeaturedLinksRow({ links = [], onAddClick }: FeaturedLinksRowProps) {
-  const items: FeaturedLinkItem[] = links.slice(0, 5)
+  const items: FeaturedLinkItem[] = links.slice(0, 10)
 
   return (
     <section className="mt-12 mb-8" aria-labelledby={SECTION_HEADING_ID}>

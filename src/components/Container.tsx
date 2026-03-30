@@ -21,6 +21,7 @@ import { CategoryCardDragOverlay } from "@/components/CategoryCardDragOverlay"
 import { LinkRowContent, type LinkCardListItem } from "@/components/LinkCardList"
 import { linkDropAnimation, nestedSortableCollisionDetection } from "@/lib/dndSortable"
 import { SortableCategoryCard } from "@/components/SortableCategoryCard"
+import { AddFeaturedLink } from "@/components/AddFeaturedLink"
 import { FeaturedLinksRow } from "@/components/FeaturedLinksRow"
 import { PageTitle } from "./PageTitle"
 import { useLinkStore } from "@/store/useLinkStore"
@@ -43,6 +44,7 @@ export function Container() {
   const featuredLinks = useLinkStore((state) => state.featuredLinks)
   const fetchCategories = useLinkStore((state) => state.fetchCategories)
   const fetchFeaturedLinks = useLinkStore((state) => state.fetchFeaturedLinks)
+  const addFeaturedLink = useLinkStore((state) => state.addFeaturedLink)
   const addLink = useLinkStore((state) => state.addLink)
   const deleteLink = useLinkStore((state) => state.deleteLink)
   const reorderLinks = useLinkStore((state) => state.reorderLinks)
@@ -52,6 +54,7 @@ export function Container() {
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
   const [overlayMenuOpen, setOverlayMenuOpen] = useState<number | null>(null)
   const [overlayEditing, setOverlayEditing] = useState<LinkCardListItem | null>(null)
+  const [addFeaturedOpen, setAddFeaturedOpen] = useState(false)
 
   useEffect(() => {
     void Promise.all([fetchCategories(), fetchFeaturedLinks()])
@@ -184,8 +187,14 @@ export function Container() {
                 url: link.url,
                 iconUrl: link.icon?.trim() || undefined,
               }))
-            : undefined 
+            : undefined
         }
+        onAddClick={() => setAddFeaturedOpen(true)}
+      />
+      <AddFeaturedLink
+        open={addFeaturedOpen}
+        onOpenChange={setAddFeaturedOpen}
+        onAdd={addFeaturedLink}
       />
       <div className="mb-0 flex justify-end">
         <AddCategoryDialog />

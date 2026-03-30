@@ -41,8 +41,8 @@ interface Category {
 interface FeaturedLinks {
   id: number
   title: string
-  url: string,
-  icon : string,
+  url: string
+  icon: string
 }
 
 interface LinkStore {
@@ -51,6 +51,7 @@ interface LinkStore {
 
   fetchCategories: () => Promise<void>
   fetchFeaturedLinks: () => Promise<void>
+  addFeaturedLink: (title: string, url: string, iconUrl?: string) => Promise<boolean>
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
   updateLink: (
     linkId: number,
@@ -136,6 +137,49 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
       icon: ((row.icon_url ?? row.icon ?? "") as string) || "",
     }))
     set({ featuredLinks })
+  },
+
+  addFeaturedLink: async (title: string, url: string, iconUrl?: string) => {
+    const t = title.trim()
+    const raw = url.trim()
+    if (!t || !raw) {
+      alert("제목과 URL을 입력해 주세요.")
+      return false
+    }
+    const u = raw.startsWith("http") ? raw : `https://${raw}`
+    if (get().featuredLinks.length >= 10) {
+      alert("스포트라이트는 최대 10개까지 추가할 수 있습니다.")
+      return false
+    }
+    const icon = (iconUrl?.trim() ?? "").trim()
+    const { error } = await supabase.from("featuredlinks").insert([
+      {
+        page_title: t,
+        page_url: u,
+        icon_url: icon,
+      },
+    ])
+    if (error) {
+      console.error("[addFeaturedLink] 저장 실패:", error.message, error.details)
+      const dupPkey =
+        error.code === "23505" ||
+        (error.message ?? "").toLowerCase().includes("duplicate key")
+      if (dupPkey) {
+        alert(
+          "저장 실패: id 시퀀스가 테이블과 맞지 않을 수 있습니다.\n\n" +
+            "Supabase SQL Editor에서 아래를 실행한 뒤 다시 시도하세요:\n\n" +
+            "SELECT setval(\n" +
+            "  pg_get_serial_sequence('public.featuredlinks','id'),\n" +
+            "  COALESCE((SELECT MAX(id) FROM public.featuredlinks), 1)\n" +
+            ");",
+        )
+      } else {
+        alert(`저장 실패: ${error.message}\n→ Supabase featuredlinks 테이블·RLS·컬럼명 확인`)
+      }
+      return false
+    }
+    await get().fetchFeaturedLinks()
+    return true
   },
 
   // 🔥 서버에 새 링크 저장하기
