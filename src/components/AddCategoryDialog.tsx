@@ -29,7 +29,7 @@ export function AddCategoryDialog() {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="hover:bg-[white] shadow-sm transition-all cursor-pointer rounded-full px-5 h-9 font-bold mb-15 bg-[#f2f2f2]">
+          className="hover:bg-[white] shadow-sm transition-all cursor-pointer rounded-full px-5 h-9 font-bold mb-8 bg-[#f2f2f2]">
           <FolderPlus className="w-3 h-3" />카테고리 추가
         </Button>
       </DialogTrigger>

@@ -21,6 +21,7 @@ import { CategoryCardDragOverlay } from "@/components/CategoryCardDragOverlay"
 import { LinkRowContent, type LinkCardListItem } from "@/components/LinkCardList"
 import { linkDropAnimation, nestedSortableCollisionDetection } from "@/lib/dndSortable"
 import { SortableCategoryCard } from "@/components/SortableCategoryCard"
+import { FeaturedLinksRow } from "@/components/FeaturedLinksRow"
 import { PageTitle } from "./PageTitle"
 import { useLinkStore } from "@/store/useLinkStore"
 
@@ -39,7 +40,9 @@ function findLinkInCategories(
 
 export function Container() {
   const categories = useLinkStore((state) => state.categories)
+  const featuredLinks = useLinkStore((state) => state.featuredLinks)
   const fetchCategories = useLinkStore((state) => state.fetchCategories)
+  const fetchFeaturedLinks = useLinkStore((state) => state.fetchFeaturedLinks)
   const addLink = useLinkStore((state) => state.addLink)
   const deleteLink = useLinkStore((state) => state.deleteLink)
   const reorderLinks = useLinkStore((state) => state.reorderLinks)
@@ -51,8 +54,8 @@ export function Container() {
   const [overlayEditing, setOverlayEditing] = useState<LinkCardListItem | null>(null)
 
   useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories])
+    void Promise.all([fetchCategories(), fetchFeaturedLinks()])
+  }, [fetchCategories, fetchFeaturedLinks])
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -173,7 +176,18 @@ export function Container() {
   return (
     <main className="mx-auto max-w-7xl flex-1 px-6 py-12">
       <PageTitle />
-      <div className="mb-1 flex justify-end">
+      <FeaturedLinksRow
+        links={
+          featuredLinks.length > 0
+            ? featuredLinks.map((link) => ({
+                title: link.title,
+                url: link.url,
+                iconUrl: link.icon?.trim() || undefined,
+              }))
+            : undefined 
+        }
+      />
+      <div className="mb-0 flex justify-end">
         <AddCategoryDialog />
       </div>
 

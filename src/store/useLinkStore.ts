@@ -38,9 +38,19 @@ interface Category {
   links: Link[]
 }
 
+interface FeaturedLinks {
+  id: number
+  title: string
+  url: string,
+  icon : string,
+}
+
 interface LinkStore {
   categories: Category[]
+  featuredLinks: FeaturedLinks[]
+
   fetchCategories: () => Promise<void>
+  fetchFeaturedLinks: () => Promise<void>
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
   updateLink: (
     linkId: number,
@@ -96,6 +106,36 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
       }
     })
     set({ categories })
+  },
+
+  featuredLinks: [],
+
+  fetchFeaturedLinks: async () => {
+    
+    const { data, error } = await supabase
+      .from('featuredlinks')
+      .select('*')
+      .order('id', { ascending: true })
+
+    if (error) {
+      console.error('[fetchFeaturedLinks] 에러:', error.message)
+      return
+    }
+
+    const rows = (data ?? []) as Record<string, unknown>[]
+    if (rows.length === 0) {
+      console.warn('[fetchFeaturedLinks] 데이터 없음. Supabase RLS 정책 확인 → supabase-rls.sql 참고')
+      set({ featuredLinks: [] })
+      return
+    }
+
+    const featuredLinks: FeaturedLinks[] = rows.map((row) => ({
+      id: toInt8Id(row.id),
+      title: ((row.page_title ?? row.title ?? "") as string) || "",
+      url: ((row.page_url ?? row.url ?? "") as string) || "",
+      icon: ((row.icon_url ?? row.icon ?? "") as string) || "",
+    }))
+    set({ featuredLinks })
   },
 
   // 🔥 서버에 새 링크 저장하기
