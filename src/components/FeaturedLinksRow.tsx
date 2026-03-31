@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react"
+import { faviconPublicUrl } from "@/lib/faviconUrl"
 import { openLinkInNewTab } from "@/lib/url"
 import { cn } from "@/lib/utils"
 
@@ -38,8 +39,8 @@ function titleInitial(title: string): string {
 export interface FeaturedLinkItem {
   title: string
   url: string
-  /** 파비콘 URL (없으면 title 첫 글자) */
-  iconUrl?: string
+  /** `favicon_{key}` 번들 키 — 없거나 매칭 실패 시 title 첫 글자 */
+  faviconKey?: string
 }
 
 export interface FeaturedLinksRowProps {
@@ -55,12 +56,6 @@ export function FeaturedLinksRow({ links = [], onAddClick }: FeaturedLinksRowPro
 
   return (
     <section className="mt-12 mb-8" aria-labelledby={SECTION_HEADING_ID}>
-      {/* <h2
-        id={SECTION_HEADING_ID}
-        className="mt-15 mb-3 text-left text-[13px] font-semibold uppercase tracking-[0.22em]"
-      >
-        Spotlight
-      </h2> */}
       <nav
         className={cn("flex w-full flex-wrap items-center justify-start gap-3 sm:gap-3.5")}
         aria-labelledby={SECTION_HEADING_ID}
@@ -68,6 +63,8 @@ export function FeaturedLinksRow({ links = [], onAddClick }: FeaturedLinksRowPro
       {items.map((item) => {
         const seed = `${item.title}\0${item.url}`
         const bgClass = CHIP_BG[chipStyleIndex(seed)]
+        const k = item.faviconKey?.trim().toLowerCase()
+        const iconSrc = k ? faviconPublicUrl(k) : undefined
         return (
           <div key={`${item.title}-${item.url}`} className="group/tooltip relative inline-flex">
             <button
@@ -78,13 +75,22 @@ export function FeaturedLinksRow({ links = [], onAddClick }: FeaturedLinksRowPro
                 bgClass,
               )}
             >
-              {item.iconUrl ? (
+              {iconSrc && k ? (
                 <img
-                  src={item.iconUrl}
+                  src={iconSrc}
                   alt=""
                   className="size-6 shrink-0 rounded-full  border-slate-200/90 bg-white object-contain dark:border-slate-600/60 sm:size-7"
                   loading="lazy"
                   decoding="async"
+                  onError={(e) => {
+                    const el = e.currentTarget
+                    const isIco = /\.ico(\?|$)/i.test(el.src)
+                    if (!isIco) {
+                      el.src = `/favicon/${k}.ico`
+                      return
+                    }
+                    el.onerror = null
+                  }}
                 />
               ) : (
                 <span

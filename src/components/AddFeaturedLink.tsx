@@ -8,24 +8,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-
 export interface AddFeaturedLinkProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAdd: (title: string, url: string, iconUrl?: string) => Promise<boolean>
+  onAdd: (title: string, url: string, faviconKey?: string) => Promise<boolean>
 }
 
 export function AddFeaturedLink({ open, onOpenChange, onAdd }: AddFeaturedLinkProps) {
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
-  const [iconUrl, setIconUrl] = useState("")
+  const [faviconKey, setFaviconKey] = useState("")
   const [pending, setPending] = useState(false)
 
   useEffect(() => {
     if (!open) {
       setTitle("")
       setUrl("")
-      setIconUrl("")
+      setFaviconKey("")
       setPending(false)
     }
   }, [open])
@@ -34,8 +33,8 @@ export function AddFeaturedLink({ open, onOpenChange, onAdd }: AddFeaturedLinkPr
     if (pending) return
     setPending(true)
     try {
-      const icon = iconUrl.trim()
-      const ok = await onAdd(title, url, icon || undefined)
+      const key = faviconKey.trim()
+      const ok = await onAdd(title, url, key || undefined)
       if (ok) onOpenChange(false)
     } finally {
       setPending(false)
@@ -73,14 +72,20 @@ export function AddFeaturedLink({ open, onOpenChange, onAdd }: AddFeaturedLinkPr
           </div>
           <div className="grid gap-2">
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              아이콘 URL{" "}
+              favicon key
               <span className="font-normal text-muted-foreground">(선택)</span>
             </label>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+                public/favicon 경로에 저장될 favicon 이름을 입력해주세요.<br/>
+                링크 저장 후 해당경로에 이미지를 저장해주세요.
+              </code>
+            </p>
             <Input
-              placeholder="https://… 파비콘 이미지 주소"
-              className="h-11"
-              value={iconUrl}
-              onChange={(e) => setIconUrl(e.target.value)}
+              placeholder="예: sentry"
+              className="h-11 font-mono text-sm"
+              value={faviconKey}
+              onChange={(e) => setFaviconKey(e.target.value.toLowerCase())}
             />
           </div>
         </div>

@@ -42,7 +42,8 @@ interface FeaturedLinks {
   id: number
   title: string
   url: string
-  icon: string
+  /** `public/favicon/favicon_{key}.png` 또는 `.ico` */
+  faviconKey: string
 }
 
 interface LinkStore {
@@ -51,7 +52,7 @@ interface LinkStore {
 
   fetchCategories: () => Promise<void>
   fetchFeaturedLinks: () => Promise<void>
-  addFeaturedLink: (title: string, url: string, iconUrl?: string) => Promise<boolean>
+  addFeaturedLink: (title: string, url: string, faviconKey?: string) => Promise<boolean>
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
   updateLink: (
     linkId: number,
@@ -134,12 +135,12 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
       id: toInt8Id(row.id),
       title: ((row.page_title ?? row.title ?? "") as string) || "",
       url: ((row.page_url ?? row.url ?? "") as string) || "",
-      icon: ((row.icon_url ?? row.icon ?? "") as string) || "",
+      faviconKey: ((row.favicon_key ?? row.faviconKey ?? "") as string) || "",
     }))
     set({ featuredLinks })
   },
 
-  addFeaturedLink: async (title: string, url: string, iconUrl?: string) => {
+  addFeaturedLink: async (title: string, url: string, faviconKey?: string) => {
     const t = title.trim()
     const raw = url.trim()
     if (!t || !raw) {
@@ -151,12 +152,12 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
       alert("스포트라이트는 최대 10개까지 추가할 수 있습니다.")
       return false
     }
-    const icon = (iconUrl?.trim() ?? "").trim()
+    const key = (faviconKey?.trim() ?? "").trim()
     const { error } = await supabase.from("featuredlinks").insert([
       {
         page_title: t,
         page_url: u,
-        icon_url: icon,
+        favicon_key: key,
       },
     ])
     if (error) {

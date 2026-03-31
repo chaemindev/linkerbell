@@ -185,7 +185,7 @@ export function Container() {
             ? featuredLinks.map((link) => ({
                 title: link.title,
                 url: link.url,
-                iconUrl: link.icon?.trim() || undefined,
+                faviconKey: link.faviconKey?.trim() || undefined,
               }))
             : undefined
         }
