@@ -55,10 +55,22 @@ export function FeaturedLinksRow({ links = [], onAddClick }: FeaturedLinksRowPro
   const items: FeaturedLinkItem[] = links.slice(0, 10)
 
   return (
-    <section className="mt-12 mb-8" aria-labelledby={SECTION_HEADING_ID}>
+    <section className="mt-12 mb-5" aria-labelledby={SECTION_HEADING_ID}>
+      <div className="flex items-center gap-1 border-b border-slate-100/90 pb-3 dark:border-slate-800/80">
+        <div
+          className="size-2 shrink-0 rounded-full bg-[#1B5E4A] dark:bg-emerald-400/80"
+          aria-hidden
+        />
+        <h2
+          id={SECTION_HEADING_ID}
+          className="inline-flex w-fit items-center rounded-full bg-[#E6F4F1] px-5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#1B5E4A] sm:px-3 sm:text-xs dark:bg-emerald-950/55 dark:text-emerald-200/95"
+        >
+          The Core Link 10
+        </h2>
+      </div>
       <nav
         className={cn("flex w-full flex-wrap items-center justify-start gap-3 sm:gap-3.5")}
-        aria-labelledby={SECTION_HEADING_ID}
+        aria-label="코어 링크 10개 목록"
       >
       {items.map((item) => {
         const seed = `${item.title}\0${item.url}`
