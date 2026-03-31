@@ -11,18 +11,21 @@ type SearchGroup = {
   links: { id: number; title: string; url: string }[]
 }
 
+const FEATURED_SEARCH_GROUP_ID = -1
+
 function buildSearchGroups(
   categories: {
     id: number
     name: string
     links: { id: number; title: string; url: string }[]
   }[],
+  featuredLinks: { id: number; title: string; url: string }[],
   query: string,
 ): SearchGroup[] {
   const q = query.trim().toLowerCase()
   if (!q) return []
 
-  return categories
+  const categoryGroups = categories
     .map((cat) => {
       const nameMatch = cat.name.toLowerCase().includes(q)
       const linkItems = cat.links.filter((l) => l?.title != null)
@@ -37,16 +40,42 @@ function buildSearchGroups(
       return null
     })
     .filter((c): c is SearchGroup => c !== null)
+
+  const featuredMatches = featuredLinks.filter((l) => {
+    const t = (l.title ?? "").trim()
+    if (!t) return false
+    const title = t.toLowerCase()
+    const url = (l.url ?? "").toLowerCase()
+    return title.includes(q) || url.includes(q)
+  })
+
+  if (featuredMatches.length === 0) return categoryGroups
+
+  const featuredGroup: SearchGroup = {
+    categoryId: FEATURED_SEARCH_GROUP_ID,
+    categoryName: "스포트라이트",
+    links: featuredMatches.map((l) => ({
+      id: l.id,
+      title: l.title,
+      url: l.url,
+    })),
+  }
+
+  return [featuredGroup, ...categoryGroups]
 }
 
 export default function Header() {
   const categories = useLinkStore((s) => s.categories)
+  const featuredLinks = useLinkStore((s) => s.featuredLinks)
   const [query, setQuery] = useState("")
   const [searchExpanded, setSearchExpanded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const groups = useMemo(() => buildSearchGroups(categories, query), [categories, query])
+  const groups = useMemo(
+    () => buildSearchGroups(categories, featuredLinks, query),
+    [categories, featuredLinks, query],
+  )
   const hasQuery = query.trim().length > 0
   const showPanel = searchExpanded && hasQuery
 
@@ -151,13 +180,13 @@ export default function Header() {
                 </p>
               ) : (
                 groups.map((group) => (
-                  <div key={group.categoryId} role="presentation">
+                  <div key={`search-group-${group.categoryId}`} role="presentation">
                     <div className="text-muted-foreground px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide">
                       {group.categoryName}
                     </div>
                     <ul className="pb-2">
                       {group.links.map((link) => (
-                        <li key={link.id} role="option">
+                        <li key={`${group.categoryId}-${link.id}`} role="option">
                           <button
                             type="button"
                             className="hover:bg-accent focus:bg-accent flex w-full px-3 py-2.5 text-left text-sm text-foreground outline-none"

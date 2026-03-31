@@ -80,16 +80,8 @@ function EditLinkDialogForm({
           />
         </div>
       </div>
-      <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-11 sm:min-w-[100px]"
-          onClick={() => onOpenChange(false)}
-        >
-          취소
-        </Button>
-        <Button type="button" onClick={() => void handleSubmit()} className="h-11 bg-slate-900 font-bold sm:min-w-[100px]">
+      <DialogFooter>
+        <Button type="button" onClick={() => void handleSubmit()} className="h-11 w-full bg-slate-900 font-bold">
           저장하기
         </Button>
       </DialogFooter>

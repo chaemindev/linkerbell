@@ -1,4 +1,5 @@
 import linkerbellImg from "@/assets/linkerbell.png"
+import { Sparkles } from 'lucide-react'
 
 export function PageTitle() {
   return (
@@ -12,17 +13,19 @@ export function PageTitle() {
 
     <h2 className="text-5xl font-semibold tracking-[-0.05em] text-slate-950 flex items-center gap-3 leading-none pt-6">
        LinkerBell
-      <div className="relative inline-flex items-center justify-center p-2 rounded-full bg-[white] transition-all duration-300 ease-out hover:scale-110 hover:rotate-3 shadow-sm cursor-default overflow-hidden group/sparkle">
-        <img
-          src={linkerbellImg}
-          alt=""
-          className="h-11 w-11 object-contain rotate-10 transition-transform duration-500 group-hover/sparkle:rotate-12 group-hover/sparkle:scale-110"
+      <div className="group/sparkle relative inline-flex cursor-default items-center justify-center transition-all duration-300 ease-out hover:scale-110 hover:rotate-3">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-violet-100 bg-[white] p-2 shadow-sm">
+          <img
+            src={linkerbellImg}
+            alt=""
+            className="h-full w-full object-contain rotate-10 transition-transform duration-500 group-hover/sparkle:rotate-12 group-hover/sparkle:scale-110"
+            aria-hidden
+          />
+        </div>
+        <Sparkles
+          className="pointer-events-none absolute -right-0.5 -top-0.5 h-4 w-4 text-yellow-400 animate-bounce opacity-80 group-hover:opacity-100 drop-shadow-sm group-hover/sparkle:opacity-100"
           aria-hidden
         />
-        {/* 호버 시 슥 지나가는 광택 효과  */}
-        <div className="absolute inset-0 bg-linear-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover/sparkle:translate-x-full transition-transform duration-1000" />
-        {/* 은은한 배경 오버레이 */}
-        <div className="absolute inset-0 bg-[#064E3B]/5 opacity-0 group-hover/sparkle:opacity-100 transition-opacity" />
       </div>
     </h2>
     <div className="flex items-center gap-3">
