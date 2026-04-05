@@ -42,7 +42,7 @@ interface FeaturedLinks {
   id: number
   title: string
   url: string
-  /** `public/favicon/favicon_{key}.png` 또는 `.ico` */
+  /** `public/favicon/{key}.png` 또는 `.ico` */
   faviconKey: string
 }
 
@@ -53,6 +53,7 @@ interface LinkStore {
   fetchCategories: () => Promise<void>
   fetchFeaturedLinks: () => Promise<void>
   addFeaturedLink: (title: string, url: string, faviconKey?: string) => Promise<boolean>
+  deleteFeaturedLink: (featuredId: number) => Promise<void>
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
   updateLink: (
     linkId: number,
@@ -181,6 +182,18 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
     }
     await get().fetchFeaturedLinks()
     return true
+  },
+
+  deleteFeaturedLink: async (featuredId: number) => {
+    const { error } = await supabase.from("featuredlinks").delete().eq("id", featuredId)
+
+    if (error) {
+      console.error("[deleteFeaturedLink] 삭제 실패:", error.message)
+      alert(`삭제 실패: ${error.message}`)
+      return
+    }
+
+    await get().fetchFeaturedLinks()
   },
 
   // 🔥 서버에 새 링크 저장하기

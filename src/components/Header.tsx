@@ -53,7 +53,7 @@ function buildSearchGroups(
 
   const featuredGroup: SearchGroup = {
     categoryId: FEATURED_SEARCH_GROUP_ID,
-    categoryName: "스포트라이트",
+    categoryName: "코어링크",
     links: featuredMatches.map((l) => ({
       id: l.id,
       title: l.title,

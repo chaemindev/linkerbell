@@ -45,6 +45,7 @@ export function Container() {
   const fetchCategories = useLinkStore((state) => state.fetchCategories)
   const fetchFeaturedLinks = useLinkStore((state) => state.fetchFeaturedLinks)
   const addFeaturedLink = useLinkStore((state) => state.addFeaturedLink)
+  const deleteFeaturedLink = useLinkStore((state) => state.deleteFeaturedLink)
   const addLink = useLinkStore((state) => state.addLink)
   const deleteLink = useLinkStore((state) => state.deleteLink)
   const reorderLinks = useLinkStore((state) => state.reorderLinks)
@@ -80,6 +81,11 @@ export function Container() {
   const handleDeleteLink = (linkId: number, title: string) => {
     if (!window.confirm(`${title} 링크를 삭제할까요?`)) return
     void deleteLink(linkId)
+  }
+
+  const handleDeleteFeaturedLink = (linkId: number, title: string) => {
+    if (!window.confirm(`${title} 스포트라이트 링크를 삭제할까요?`)) return
+    void deleteFeaturedLink(linkId)
   }
 
   const handleDeleteCategory = (categoryId: number) => {
@@ -183,6 +189,7 @@ export function Container() {
         links={
           featuredLinks.length > 0
             ? featuredLinks.map((link) => ({
+                id: link.id,
                 title: link.title,
                 url: link.url,
                 faviconKey: link.faviconKey?.trim() || undefined,
@@ -190,6 +197,7 @@ export function Container() {
             : undefined
         }
         onAddClick={() => setAddFeaturedOpen(true)}
+        onDeleteFeaturedLink={handleDeleteFeaturedLink}
       />
       <AddFeaturedLink
         open={addFeaturedOpen}

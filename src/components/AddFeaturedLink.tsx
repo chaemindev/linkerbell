@@ -45,7 +45,7 @@ export function AddFeaturedLink({ open, onOpenChange, onAdd }: AddFeaturedLinkPr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">스포트라이트 링크 추가</DialogTitle>
+          <DialogTitle className="text-xl font-bold">코어 링크 추가</DialogTitle>
         </DialogHeader>
         <div className="grid gap-5 py-4">
           <div className="grid gap-2">

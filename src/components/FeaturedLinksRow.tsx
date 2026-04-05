@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react"
+import { Plus, X } from "lucide-react"
 import { faviconPublicUrl } from "@/lib/faviconUrl"
 import { openLinkInNewTab } from "@/lib/url"
 import { cn } from "@/lib/utils"
@@ -37,6 +37,8 @@ function titleInitial(title: string): string {
 }
 
 export interface FeaturedLinkItem {
+  /** DB row id — 있을 때만 삭제 버튼 표시 */
+  id?: number
   title: string
   url: string
   /** `favicon_{key}` 번들 키 — 없거나 매칭 실패 시 title 첫 글자 */
@@ -47,18 +49,24 @@ export interface FeaturedLinksRowProps {
   links?: FeaturedLinkItem[]
   /** 스포트라이트 링크 추가 버튼 — 다이얼로그 열기 등 */
   onAddClick?: () => void
+  /** `links[].id`가 있을 때 각 칩에 삭제 버튼 표시 */
+  onDeleteFeaturedLink?: (linkId: number, title: string) => void
 }
 
 const SECTION_HEADING_ID = "featured-links-heading"
 
-export function FeaturedLinksRow({ links = [], onAddClick }: FeaturedLinksRowProps) {
+export function FeaturedLinksRow({
+  links = [],
+  onAddClick,
+  onDeleteFeaturedLink,
+}: FeaturedLinksRowProps) {
   const items: FeaturedLinkItem[] = links.slice(0, 10)
 
   return (
     <section className="mt-12 mb-5" aria-labelledby={SECTION_HEADING_ID}>
       <div className="flex items-center gap-1 border-b border-slate-100/90 pb-3 dark:border-slate-800/80">
         <div
-          className="size-2 shrink-0 rounded-full bg-[#1B5E4A] dark:bg-emerald-400/80"
+          className="size-1.5 shrink-0 rounded-full bg-[#1B5E4A] dark:bg-emerald-400/80"
           aria-hidden
         />
         <h2
@@ -77,8 +85,14 @@ export function FeaturedLinksRow({ links = [], onAddClick }: FeaturedLinksRowPro
         const bgClass = CHIP_BG[chipStyleIndex(seed)]
         const k = item.faviconKey?.trim().toLowerCase()
         const iconSrc = k ? faviconPublicUrl(k) : undefined
+        const rowKey = item.id != null ? String(item.id) : `${item.title}-${item.url}`
+        const canDelete =
+          onDeleteFeaturedLink != null && item.id != null && Number.isFinite(item.id)
         return (
-          <div key={`${item.title}-${item.url}`} className="group/tooltip relative inline-flex">
+          <div
+            key={rowKey}
+            className="group/item group/tooltip relative inline-flex touch-manipulation"
+          >
             <button
               type="button"
               onClick={() => openLinkInNewTab(item.url)}
@@ -113,6 +127,27 @@ export function FeaturedLinksRow({ links = [], onAddClick }: FeaturedLinksRowPro
                 </span>
               )}
             </button>
+            {canDelete ? (
+              <button
+                type="button"
+                aria-label={`${item.title} 스포트라이트 링크 삭제`}
+                className={cn(
+                  "focus-visible:ring-ring absolute -top-0.5 -right-0.5 z-[60] flex size-4 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-slate-600 shadow-sm transition-[opacity,background-color,color,border-color] duration-200",
+                  "hover:border-red-200/90 hover:bg-red-50 hover:text-red-600",
+                  "opacity-0 group-hover/item:opacity-100 pointer-coarse:opacity-100",
+                  "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                  "dark:border-slate-600 dark:bg-slate-900/95 dark:text-slate-300 dark:hover:border-red-400/50 dark:hover:bg-red-950/50 dark:hover:text-red-300",
+                )}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  const id = item.id
+                  if (id != null) onDeleteFeaturedLink(id, item.title)
+                }}
+              >
+                <X className="size-2.5 shrink-0" strokeWidth={2.25} aria-hidden />
+              </button>
+            ) : null}
             <div
               role="tooltip"
               className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 flex w-max max-w-[min(90vw,20rem)] -translate-x-1/2 flex-col items-center opacity-0 transition-[opacity,transform] duration-200 ease-out -translate-y-1 group-hover/tooltip:translate-y-0 group-hover/tooltip:opacity-100"
