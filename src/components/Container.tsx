@@ -51,6 +51,7 @@ export function Container() {
   const reorderLinks = useLinkStore((state) => state.reorderLinks)
   const reorderCategories = useLinkStore((state) => state.reorderCategories)
   const deleteCategory = useLinkStore((state) => state.deleteCategory)
+  const recordFeaturedLinkClick = useLinkStore((state) => state.recordFeaturedLinkClick)
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
   const [overlayMenuOpen, setOverlayMenuOpen] = useState<number | null>(null)
@@ -198,6 +199,9 @@ export function Container() {
         }
         onAddClick={() => setAddFeaturedOpen(true)}
         onDeleteFeaturedLink={handleDeleteFeaturedLink}
+        onBeforeOpenLink={(item) => {
+          if (item.id != null && Number.isFinite(item.id)) recordFeaturedLinkClick(item.id)
+        }}
       />
       <AddFeaturedLink
         open={addFeaturedOpen}

@@ -67,6 +67,8 @@ function buildSearchGroups(
 export default function Header() {
   const categories = useLinkStore((s) => s.categories)
   const featuredLinks = useLinkStore((s) => s.featuredLinks)
+  const recordLinkClick = useLinkStore((s) => s.recordLinkClick)
+  const recordFeaturedLinkClick = useLinkStore((s) => s.recordFeaturedLinkClick)
   const [query, setQuery] = useState("")
   const [searchExpanded, setSearchExpanded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -192,6 +194,11 @@ export default function Header() {
                             className="hover:bg-accent focus:bg-accent flex w-full px-3 py-2.5 text-left text-sm text-foreground outline-none"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => {
+                              if (group.categoryId === FEATURED_SEARCH_GROUP_ID) {
+                                recordFeaturedLinkClick(link.id)
+                              } else {
+                                recordLinkClick(link.id)
+                              }
                               openLinkInNewTab(link.url)
                               setSearchExpanded(false)
                               setQuery("")

@@ -51,6 +51,8 @@ export interface FeaturedLinksRowProps {
   onAddClick?: () => void
   /** `links[].id`가 있을 때 각 칩에 삭제 버튼 표시 */
   onDeleteFeaturedLink?: (linkId: number, title: string) => void
+  /** 새 탭으로 열기 직전 (클릭 수 기록 등) */
+  onBeforeOpenLink?: (item: FeaturedLinkItem) => void
 }
 
 const SECTION_HEADING_ID = "featured-links-heading"
@@ -59,6 +61,7 @@ export function FeaturedLinksRow({
   links = [],
   onAddClick,
   onDeleteFeaturedLink,
+  onBeforeOpenLink,
 }: FeaturedLinksRowProps) {
   const items: FeaturedLinkItem[] = links.slice(0, 10)
 
@@ -95,7 +98,10 @@ export function FeaturedLinksRow({
           >
             <button
               type="button"
-              onClick={() => openLinkInNewTab(item.url)}
+              onClick={() => {
+                onBeforeOpenLink?.(item)
+                openLinkInNewTab(item.url)
+              }}
               className={cn(
                 "focus-visible:ring-ring flex size-11 shrink-0 items-center justify-center rounded-full border p-0 text-sm font-medium shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-[border-color,background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:size-12",
                 bgClass,

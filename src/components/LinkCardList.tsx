@@ -11,6 +11,7 @@ import { LinkCardEdit } from "@/components/LinkCardEdit"
 import { sortableTransition } from "@/lib/dndSortable"
 import { openLinkInNewTab } from "@/lib/url"
 import { cn } from "@/lib/utils"
+import { useLinkStore } from "@/store/useLinkStore"
 
 export interface LinkCardListItem {
   id: number
@@ -66,7 +67,10 @@ export function LinkRowContent({
       <button
         type="button"
         className="flex min-h-0 min-w-0 flex-1 cursor-pointer select-none items-center justify-between overflow-hidden border-0 bg-transparent px-6 py-4 pr-2 text-left [-webkit-touch-callout:none] [touch-callout:none] touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40 focus-visible:ring-offset-2"
-        onClick={() => openLinkInNewTab(link.url)}
+        onClick={() => {
+          useLinkStore.getState().recordLinkClick(link.id)
+          openLinkInNewTab(link.url)
+        }}
         aria-label={`${link.title}, 새 탭에서 열기`}
       >
         <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden pr-2">

@@ -21,6 +21,11 @@ function toSortOrder(value: unknown): number {
   return 0
 }
 
+function toClickCount(value: unknown): number {
+  const n = toSortOrder(value)
+  return n < 0 ? 0 : n
+}
+
 interface Link {
   id: number
   title: string
@@ -28,6 +33,8 @@ interface Link {
   category_id: number
   /** 카테고리 내 수동 정렬 (낮을수록 위) */
   sort_order: number
+  /** 누적 클릭 수 (UI 비표시) — DB `click_count` */
+  click_count: number
 }
 
 interface Category {
@@ -44,6 +51,8 @@ interface FeaturedLinks {
   url: string
   /** `public/favicon/{key}.png` 또는 `.ico` */
   faviconKey: string
+  /** 누적 클릭 수 (UI 비표시) — DB `click_count` */
+  click_count: number
 }
 
 interface LinkStore {
@@ -65,6 +74,11 @@ interface LinkStore {
   addCategory: (name: string) => Promise<void>
   renameCategory: (categoryId: number, name: string) => Promise<boolean>
   deleteCategory: (categoryId: number) => Promise<void>
+
+  /** 일반 링크 새 탭 열기 등 — 실패는 콘솔만 */
+  recordLinkClick: (linkId: number) => void
+  /** 스포트라이트 링크 클릭 */
+  recordFeaturedLinkClick: (featuredId: number) => void
 }
 
 export const useLinkStore = create<LinkStore>((set, get) => ({
@@ -99,6 +113,9 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
         url: (link.page_url ?? link.url ?? "") as string,
         category_id: toInt8Id(link.category_id ?? link.categoryId ?? row.id),
         sort_order: toSortOrder(link.sort_order ?? link.sortOrder),
+        click_count: toClickCount(
+          link.click_count ?? link.clickCount ?? link.click_counting ?? link.clickCounting,
+        ),
       }))
       links.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id)
       return {
@@ -137,6 +154,9 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
       title: ((row.page_title ?? row.title ?? "") as string) || "",
       url: ((row.page_url ?? row.url ?? "") as string) || "",
       faviconKey: ((row.favicon_key ?? row.faviconKey ?? "") as string) || "",
+      click_count: toClickCount(
+        row.click_count ?? row.clickCount ?? row.click_counting ?? row.clickCounting,
+      ),
     }))
     set({ featuredLinks })
   },
@@ -412,5 +432,21 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
     }
 
     await useLinkStore.getState().fetchCategories()
+  },
+
+  recordLinkClick: (linkId: number) => {
+    if (!Number.isFinite(linkId) || linkId <= 0) return
+    void supabase.rpc("increment_link_click", { p_id: linkId }).then(({ error }) => {
+      if (error) console.error("[recordLinkClick]", error.message)
+    })
+  },
+
+  recordFeaturedLinkClick: (featuredId: number) => {
+    if (!Number.isFinite(featuredId) || featuredId <= 0) return
+    void supabase
+      .rpc("increment_featured_link_click", { p_id: featuredId })
+      .then(({ error }) => {
+        if (error) console.error("[recordFeaturedLinkClick]", error.message)
+      })
   },
 }))
