@@ -26,6 +26,11 @@ function toClickCount(value: unknown): number {
   return n < 0 ? 0 : n
 }
 
+/** DB `status` — 'D'만 삭제(비활성), 그 외·NULL은 목록에 표시 */
+function isActiveStatus(value: unknown): boolean {
+  return value !== "D"
+}
+
 interface Link {
   id: number
   title: string
@@ -88,10 +93,11 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
   fetchCategories: async () => {
     // categories + links relation으로 한 번에 조회 (links 테이블 FK: category_id → categories.id)
     const { data, error } = await supabase
-      .from('categories')
-      .select('*, links(*)')
-      .order('sort_order', { ascending: true })
-      .order('sort_order', { ascending: true, foreignTable: 'links' })
+      .from("categories")
+      .select("*, links(*)")
+      .or("status.is.null,status.neq.D")
+      .order("sort_order", { ascending: true })
+      .order("sort_order", { ascending: true, foreignTable: "links" })
 
     if (error) {
       console.error('[fetchCategories] 에러:', error.message)
@@ -106,7 +112,9 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
     }
 
     const categories: Category[] = rows.map((row) => {
-      const rawLinks = (row.links ?? []) as Record<string, unknown>[]
+      const rawLinks = ((row.links ?? []) as Record<string, unknown>[]).filter((link) =>
+        isActiveStatus(link.status),
+      )
       const links: Link[] = rawLinks.map((link) => ({
         id: toInt8Id(link.id),
         title: (link.page_title ?? link.title ?? "") as string,
@@ -133,9 +141,10 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
   fetchFeaturedLinks: async () => {
     
     const { data, error } = await supabase
-      .from('featuredlinks')
-      .select('*')
-      .order('id', { ascending: true })
+      .from("featuredlinks")
+      .select("*")
+      .or("status.is.null,status.neq.D")
+      .order("id", { ascending: true })
 
     if (error) {
       console.error('[fetchFeaturedLinks] 에러:', error.message)
@@ -205,7 +214,7 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
   },
 
   deleteFeaturedLink: async (featuredId: number) => {
-    const { error } = await supabase.from("featuredlinks").delete().eq("id", featuredId)
+    const { error } = await supabase.from("featuredlinks").update({ status: "D" }).eq("id", featuredId)
 
     if (error) {
       console.error("[deleteFeaturedLink] 삭제 실패:", error.message)
@@ -219,10 +228,11 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
   // 🔥 서버에 새 링크 저장하기
   addLink: async (category_id: number, title: string, url: string) => {
     const { data: maxRows } = await supabase
-      .from('links')
-      .select('sort_order')
-      .eq('category_id', category_id)
-      .order('sort_order', { ascending: false })
+      .from("links")
+      .select("sort_order")
+      .eq("category_id", category_id)
+      .or("status.is.null,status.neq.D")
+      .order("sort_order", { ascending: false })
       .limit(1)
 
     const maxOrder = maxRows?.[0] ? toSortOrder((maxRows[0] as { sort_order?: unknown }).sort_order) : -1
@@ -354,7 +364,7 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
   },
 
   deleteLink: async (linkId: number) => {
-    const { error } = await supabase.from("links").delete().eq("id", linkId)
+    const { error } = await supabase.from("links").update({ status: "D" }).eq("id", linkId)
 
     if (error) {
       console.error("[deleteLink] 삭제 실패:", error.message)
@@ -370,6 +380,7 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
     const { data: maxRows } = await supabase
       .from("categories")
       .select("sort_order")
+      .or("status.is.null,status.neq.D")
       .order("sort_order", { ascending: false })
       .limit(1)
 
@@ -414,19 +425,23 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
   deleteCategory: async (categoryId: number) => {
     const { error: linksError } = await supabase
       .from("links")
-      .delete()
+      .update({ status: "D" })
       .eq("category_id", categoryId)
+      .or("status.is.null,status.neq.D")
 
     if (linksError) {
-      console.error("[deleteCategory] 링크 삭제 실패:", linksError.message)
+      console.error("[deleteCategory] 링크 비활성화 실패:", linksError.message)
       alert(`링크 삭제 실패: ${linksError.message}`)
       return
     }
 
-    const { error: categoryError } = await supabase.from("categories").delete().eq("id", categoryId)
+    const { error: categoryError } = await supabase
+      .from("categories")
+      .update({ status: "D" })
+      .eq("id", categoryId)
 
     if (categoryError) {
-      console.error("[deleteCategory] 카테고리 삭제 실패:", categoryError.message)
+      console.error("[deleteCategory] 카테고리 비활성화 실패:", categoryError.message)
       alert(`카테고리 삭제 실패: ${categoryError.message}`)
       return
     }

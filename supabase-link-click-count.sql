@@ -37,3 +37,14 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.increment_link_click(bigint) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.increment_featured_link_click(bigint) TO anon, authenticated;
+
+-- 이미 `click_count` 컬럼만 있고 DEFAULT가 없을 때 (새 INSERT 행에 0이 들어가게 함)
+ALTER TABLE public.links
+  ALTER COLUMN click_count SET DEFAULT 0;
+
+ALTER TABLE public.featuredlinks
+  ALTER COLUMN click_count SET DEFAULT 0;
+
+-- 기존 모든 행의 click_count를 0으로 초기화
+UPDATE public.links SET click_count = 0;
+UPDATE public.featuredlinks SET click_count = 0;
