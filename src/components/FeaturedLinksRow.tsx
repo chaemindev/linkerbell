@@ -65,7 +65,7 @@ export function FeaturedLinksRow({
 }: FeaturedLinksRowProps) {
   const items: FeaturedLinkItem[] = links.slice(0, 10)
 
-  return (
+    return (
     <section className="mt-12 mb-5" aria-labelledby={SECTION_HEADING_ID}>
       <div className="flex items-center gap-1 border-b border-slate-100/90 pb-3 dark:border-slate-800/80">
         <div

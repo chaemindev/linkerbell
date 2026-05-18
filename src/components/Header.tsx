@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Search } from "lucide-react"
 import FairyLogo from "@/components/common/FairyLogo"
+import { Button } from "@/components/ui/button"
 import { openLinkInNewTab } from "@/lib/url"
 import { cn } from "@/lib/utils"
 import { useLinkStore } from "@/store/useLinkStore"
@@ -64,7 +65,12 @@ function buildSearchGroups(
   return [featuredGroup, ...categoryGroups]
 }
 
-export default function Header() {
+type HeaderProps = {
+  /** 마이벨 페이지에서 현재 위치 표시 */
+  myBellActive?: boolean
+}
+
+export default function Header({ myBellActive = false }: HeaderProps) {
   const categories = useLinkStore((s) => s.categories)
   const featuredLinks = useLinkStore((s) => s.featuredLinks)
   const recordLinkClick = useLinkStore((s) => s.recordLinkClick)
@@ -112,7 +118,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4">
-        <div className="flex min-w-0 items-center gap-4">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="group flex cursor-pointer items-center gap-2.5">
             <FairyLogo />
             <div className="-space-y-0.6 flex flex-col justify-center">
@@ -124,6 +130,27 @@ export default function Header() {
               </h2>
             </div>
           </div>
+
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-9 shrink-0 gap-1.5 rounded-full border-emerald-200/70 bg-linear-to-r from-emerald-50/95 via-teal-50/90 to-emerald-50/95 px-3 font-semibold text-[#1B5E4A] shadow-[0_1px_2px_rgba(27,94,74,0.08)] transition-all duration-200",
+              "hover:border-emerald-300/80 hover:from-emerald-100 hover:via-teal-100/95 hover:to-emerald-100 hover:text-emerald-950",
+              "hover:shadow-[0_0_0_1px_rgba(230,244,241,0.95),0_0_10px_3px_rgba(27,94,74,0.12)]",
+              "focus-visible:border-emerald-300/70 focus-visible:shadow-[0_0_0_1px_rgba(230,244,241,0.95),0_0_10px_3px_rgba(27,94,74,0.14)]",
+              myBellActive &&
+                "border-emerald-300/90 from-emerald-100 via-teal-100 to-emerald-100 text-emerald-950 shadow-[0_0_0_1px_rgba(230,244,241,0.95),0_0_10px_3px_rgba(27,94,74,0.14)]",
+            )}
+          >
+            <a href="/my-bell" aria-label="개인화 페이지로 이동" aria-current={myBellActive ? "page" : undefined}>
+              <span className="text-sm leading-none" aria-hidden>
+                🌙
+              </span>
+              <span className="hidden sm:inline">마이벨</span>
+            </a>
+          </Button>
         </div>
 
         <div ref={containerRef} className="relative shrink-0">
