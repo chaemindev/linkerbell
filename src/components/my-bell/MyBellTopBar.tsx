@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { Search } from "lucide-react"
 import FairyLogo from "@/components/common/FairyLogo"
 import { BellNavButton } from "@/components/common/BellNavButton"
+import { useMyBellStore } from "@/store/useMyBellStore"
 import { openLinkInNewTab } from "@/lib/url"
 import { cn } from "@/lib/utils"
-import { useLinkStore } from "@/store/useLinkStore"
 
 type SearchGroup = {
   categoryId: number
@@ -12,77 +12,45 @@ type SearchGroup = {
   links: { id: number; title: string; url: string }[]
 }
 
-const FEATURED_SEARCH_GROUP_ID = -1
-
 function buildSearchGroups(
-  categories: {
-    id: number
-    name: string
-    links: { id: number; title: string; url: string }[]
-  }[],
-  featuredLinks: { id: number; title: string; url: string }[],
+  categories: { id: number; name: string }[],
+  links: { id: number; title: string; url: string; categoryId: number }[],
   query: string,
 ): SearchGroup[] {
   const q = query.trim().toLowerCase()
   if (!q) return []
 
-  const categoryGroups = categories
-    .map((cat) => {
-      const nameMatch = cat.name.toLowerCase().includes(q)
-      const linkItems = cat.links.filter((l) => l?.title != null)
-      if (nameMatch) return { categoryId: cat.id, categoryName: cat.name, links: linkItems }
-      const filteredLinks = linkItems.filter(
-        (l) =>
-          l.title.toLowerCase().includes(q) ||
-          (l.url ?? "").toLowerCase().includes(q),
-      )
-      if (filteredLinks.length > 0)
-        return { categoryId: cat.id, categoryName: cat.name, links: filteredLinks }
-      return null
-    })
-    .filter((c): c is SearchGroup => c !== null)
+  const slim = (ls: typeof links) => ls.map(({ id, title, url }) => ({ id, title, url }))
+  const results: SearchGroup[] = []
 
-  const featuredMatches = featuredLinks.filter((l) => {
-    const t = (l.title ?? "").trim()
-    if (!t) return false
-    const title = t.toLowerCase()
-    const url = (l.url ?? "").toLowerCase()
-    return title.includes(q) || url.includes(q)
-  })
-
-  if (featuredMatches.length === 0) return categoryGroups
-
-  const featuredGroup: SearchGroup = {
-    categoryId: FEATURED_SEARCH_GROUP_ID,
-    categoryName: "코어링크",
-    links: featuredMatches.map((l) => ({
-      id: l.id,
-      title: l.title,
-      url: l.url,
-    })),
+  for (const cat of categories) {
+    const catLinks = links.filter((l) => l.categoryId === cat.id)
+    const nameMatch = cat.name.toLowerCase().includes(q)
+    const filteredLinks = catLinks.filter(
+      (l) => l.title.toLowerCase().includes(q) || l.url.toLowerCase().includes(q),
+    )
+    if (nameMatch) {
+      results.push({ categoryId: cat.id, categoryName: cat.name, links: slim(catLinks) })
+    } else if (filteredLinks.length > 0) {
+      results.push({ categoryId: cat.id, categoryName: cat.name, links: slim(filteredLinks) })
+    }
   }
-
-  return [featuredGroup, ...categoryGroups]
+  return results
 }
 
-type HeaderProps = {
-  /** 마이벨 페이지에서 현재 위치 표시 */
-  myBellActive?: boolean
-}
+export function MyBellTopBar() {
+  const categories = useMyBellStore((s) => s.categories)
+  const links = useMyBellStore((s) => s.links)
+  const recordClick = useMyBellStore((s) => s.recordClick)
 
-export default function Header({ myBellActive = false }: HeaderProps) {
-  const categories = useLinkStore((s) => s.categories)
-  const featuredLinks = useLinkStore((s) => s.featuredLinks)
-  const recordLinkClick = useLinkStore((s) => s.recordLinkClick)
-  const recordFeaturedLinkClick = useLinkStore((s) => s.recordFeaturedLinkClick)
   const [query, setQuery] = useState("")
   const [searchExpanded, setSearchExpanded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const groups = useMemo(
-    () => buildSearchGroups(categories, featuredLinks, query),
-    [categories, featuredLinks, query],
+    () => buildSearchGroups(categories, links, query),
+    [categories, links, query],
   )
   const hasQuery = query.trim().length > 0
   const showPanel = searchExpanded && hasQuery
@@ -117,25 +85,24 @@ export default function Header({ myBellActive = false }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4">
+      {/* 마이벨 전용: 좌측 패딩 제거해 사이드바와 정렬, 우측은 Header와 동일 */}
+      <div className="flex h-16 w-full items-center justify-between gap-4 pl-4 pr-4">
+        {/* 브랜드 + 우리벨 — 메인 Header와 완전히 동일한 구조 */}
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="group flex cursor-pointer items-center gap-2.5">
             <FairyLogo />
             <div className="-space-y-0.6 flex flex-col justify-center">
-              <h1 className="text-[17px] font-semibold tracking-wide text-foreground">
-                LinkerBell
-              </h1>
+              <h1 className="text-[17px] font-semibold tracking-wide text-foreground">LinkerBell</h1>
               <h2 className="text-muted-foreground/70 text-[9px] font-light uppercase tracking-[0.18em] leading-tight">
                 WEB 개발팀 링크요정
               </h2>
             </div>
           </div>
-
-          <BellNavButton myBellActive={myBellActive} />
+          <BellNavButton myBellActive />
         </div>
 
+        {/* 검색 — useMyBellStore 연동 */}
         <div ref={containerRef} className="relative shrink-0">
-          {/* overflow-hidden은 펼침 클립용으로만 한 줄에 적용. 여기 두면 드롭다운이 잘려 검색이 안 되는 것처럼 보임 */}
           <div
             className={cn(
               "group overflow-hidden rounded-full transition-[max-width,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -162,7 +129,7 @@ export default function Header({ myBellActive = false }: HeaderProps) {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="검색"
+                placeholder="마이벨 검색"
                 autoComplete="off"
                 className={cn(
                   "text-foreground placeholder:text-muted-foreground h-10 min-w-0 flex-1 border-0 bg-transparent py-2 pr-3 text-sm outline-none transition-opacity duration-200 ease-out focus-visible:ring-0 focus-visible:ring-offset-0",
@@ -170,17 +137,17 @@ export default function Header({ myBellActive = false }: HeaderProps) {
                     ? "pointer-events-auto opacity-100"
                     : "pointer-events-none opacity-0",
                 )}
-                aria-label="링크 검색"
+                aria-label="마이벨 링크 검색"
                 aria-expanded={showPanel}
-                aria-controls="header-search-results"
+                aria-controls="mybell-search-results"
                 aria-autocomplete="list"
               />
             </div>
           </div>
 
-          {showPanel ? (
+          {showPanel && (
             <div
-              id="header-search-results"
+              id="mybell-search-results"
               role="listbox"
               className="border-border bg-popover text-popover-foreground absolute left-0 right-0 top-[calc(100%+0.5rem)] z-100 max-h-[min(70vh,22rem)] overflow-y-auto rounded-xl border py-2 shadow-lg"
             >
@@ -190,7 +157,7 @@ export default function Header({ myBellActive = false }: HeaderProps) {
                 </p>
               ) : (
                 groups.map((group) => (
-                  <div key={`search-group-${group.categoryId}`} role="presentation">
+                  <div key={`mybell-search-${group.categoryId}`} role="presentation">
                     <div className="text-muted-foreground px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide">
                       {group.categoryName}
                     </div>
@@ -202,11 +169,7 @@ export default function Header({ myBellActive = false }: HeaderProps) {
                             className="hover:bg-accent focus:bg-accent flex w-full px-3 py-2.5 text-left text-sm text-foreground outline-none"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => {
-                              if (group.categoryId === FEATURED_SEARCH_GROUP_ID) {
-                                recordFeaturedLinkClick(link.id)
-                              } else {
-                                recordLinkClick(link.id)
-                              }
+                              recordClick(link.id)
                               openLinkInNewTab(link.url)
                               setSearchExpanded(false)
                               setQuery("")
@@ -221,7 +184,7 @@ export default function Header({ myBellActive = false }: HeaderProps) {
                 ))
               )}
             </div>
-          ) : null}
+          )}
         </div>
       </div>
     </header>

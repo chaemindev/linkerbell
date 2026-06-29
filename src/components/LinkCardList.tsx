@@ -89,6 +89,7 @@ export function LinkRowContent({
           onMenuOpenChange={(open: boolean) => setMenuOpenLinkId(open ? link.id : null)}
           onEditLink={() => setEditingLink(link)}
           onDelete={() => onDeleteLink(link.id, link.title)}
+          link={{ title: link.title, url: link.url }}
         />
       </div>
     </div>
