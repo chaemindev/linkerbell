@@ -11,7 +11,7 @@ export function PageTitle() {
       SSG.COM
     </span>
 
-    <h2 className="text-5xl font-semibold tracking-[-0.05em] text-slate-950 flex items-center gap-3 leading-none pt-6">
+    <h2 className="flex items-center gap-3 pt-6 text-4xl font-medium tracking-[-0.005em] text-slate-800/90 leading-none sm:text-[2.7rem]">
        LinkerBell
       <div className="group/sparkle relative inline-flex cursor-default items-center justify-center transition-all duration-300 ease-out hover:scale-110 hover:rotate-3">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-violet-100 bg-[white] p-2 shadow-sm">
@@ -29,7 +29,7 @@ export function PageTitle() {
       </div>
     </h2>
     <div className="flex items-center gap-3">
-      <span className="text-[9px] font-bold text-slate-400 tracking-[0.3em] uppercase">
+      <span className="text-[9px] font-medium text-slate-400/80 tracking-[0.3em] uppercase">
        Web Dev Team  LINK ARCHIVE
       </span>
     </div>
