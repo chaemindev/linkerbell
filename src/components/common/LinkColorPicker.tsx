@@ -147,9 +147,13 @@ export function LinkColorPicker({
               "flex h-15 min-w-0 items-center overflow-hidden rounded-[40px] border px-6 py-4 transition-colors",
               appearance.className,
             )}
-            style={appearance.style}
+            style={{
+              ...appearance.style,
+              ["--link-title" as string]: appearance.textColors.title,
+              ["--link-title-hover" as string]: appearance.textColors.titleHover,
+            }}
           >
-            <span className="line-clamp-1 text-sm font-medium tracking-tight text-slate-900">
+            <span className="line-clamp-1 text-sm font-medium tracking-tight text-(--link-title)">
               {previewTitle}
             </span>
           </div>
@@ -159,11 +163,16 @@ export function LinkColorPicker({
               "flex w-full items-center rounded-xl border px-5 py-2 transition-colors",
               appearance.className,
             )}
-            style={appearance.style}
+            style={{
+              ...appearance.style,
+              ["--link-title" as string]: appearance.textColors.title,
+              ["--link-title-hover" as string]: appearance.textColors.titleHover,
+              ["--link-muted" as string]: appearance.textColors.muted,
+            }}
           >
             <div className="min-w-0">
-              <p className="line-clamp-1 text-sm font-semibold text-slate-900">{previewTitle}</p>
-              <p className="line-clamp-1 text-[11px] text-slate-400">{previewDomain}</p>
+              <p className="line-clamp-1 text-sm font-semibold text-(--link-title)">{previewTitle}</p>
+              <p className="line-clamp-1 text-[11px] text-(--link-muted)">{previewDomain}</p>
             </div>
           </div>
         )}

@@ -43,24 +43,29 @@ export function MyBellLinkCard({
         "group flex w-full items-center gap-3 rounded-xl border px-5 py-2 text-left transition-all duration-200",
         appearance.className,
       )}
-      style={appearance.style}
+      style={{
+        ...appearance.style,
+        ["--link-title" as string]: appearance.textColors.title,
+        ["--link-title-hover" as string]: appearance.textColors.titleHover,
+        ["--link-muted" as string]: appearance.textColors.muted,
+      }}
       onClick={() => {
         recordClick(id)
         openLinkInNewTab(url)
       }}
     >
       <div className="min-w-0 flex-1">
-        <p className="line-clamp-1 text-sm font-semibold text-slate-900 group-hover:text-slate-950">
+        <p className="line-clamp-1 text-sm font-semibold text-(--link-title) transition-colors group-hover:text-(--link-title-hover)">
           {title}
         </p>
-        <p className="line-clamp-1 text-[11px] text-slate-400">{domain}</p>
+        <p className="line-clamp-1 text-[11px] text-(--link-muted)">{domain}</p>
         <div className="mt-0.5 flex items-center gap-1.5">
           {isHot && (
             <span className="rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-500">
               HOT
             </span>
           )}
-          <span className="flex items-center gap-0.5 text-[11px] text-slate-400">
+          <span className="flex items-center gap-0.5 text-[11px] text-(--link-muted)">
             <MousePointer2 className="h-2.5 w-2.5" />
             {clickCount}
           </span>

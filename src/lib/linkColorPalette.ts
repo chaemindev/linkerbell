@@ -177,6 +177,18 @@ export function storedToLinkColorKey(value: unknown): LinkColorKey {
   return normalizeLinkColorKey(storedToLinkColorValue(value))
 }
 
+/** 프리셋 카드 배경 — Tailwind *-50 대표 hex (luminance 계산용) */
+const PRESET_BG_HEX: Record<LinkColorKey, string> = {
+  default: "#FFFFFF",
+  rose: "#FFF1F2",
+  sky: "#F0F9FF",
+  violet: "#F5F3FF",
+  emerald: "#ECFDF5",
+  amber: "#FFFBEB",
+  purple: "#FAF5FF",
+  teal: "#F0FDFA",
+}
+
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const normalized = normalizeHexColor(hex)
   if (!normalized) return null
@@ -188,6 +200,47 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   }
 }
 
+/** WCAG relative luminance (0 = black, 1 = white) */
+export function getRelativeLuminance(hex: string): number {
+  const rgb = hexToRgb(hex)
+  if (!rgb) return 1
+  const channel = (c: number) => {
+    const s = c / 255
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+  }
+  const r = channel(rgb.r)
+  const g = channel(rgb.g)
+  const b = channel(rgb.b)
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+export type LinkCardTextColors = {
+  title: string
+  titleHover: string
+  muted: string
+}
+
+export function getLinkCardTextColors(backgroundHex: string): LinkCardTextColors {
+  const darkBg = getRelativeLuminance(backgroundHex) <= 0.5
+  if (darkBg) {
+    return {
+      title: "#F8FAFC",
+      titleHover: "#FFFFFF",
+      muted: "rgba(226, 232, 240, 0.72)",
+    }
+  }
+  return {
+    title: "#0F172A",
+    titleHover: "#020617",
+    muted: "rgba(100, 116, 139, 0.9)",
+  }
+}
+
+export function getBackgroundHexForColorKey(colorKey: string | null | undefined): string {
+  if (isCustomLinkColor(colorKey)) return normalizeHexColor(colorKey!)!
+  return PRESET_BG_HEX[normalizeLinkColorKey(colorKey)]
+}
+
 function rgbaFromHex(hex: string, alpha: number): string {
   const rgb = hexToRgb(hex)
   if (!rgb) return hex
@@ -197,13 +250,17 @@ function rgbaFromHex(hex: string, alpha: number): string {
 export type LinkCardAppearance = {
   className: string
   style?: CSSProperties
+  textColors: LinkCardTextColors
 }
+
+const LIGHT_CARD_TEXT = getLinkCardTextColors("#FFFFFF")
 
 function customOurBellAppearance(hex: string, dragOverlay?: boolean): LinkCardAppearance {
   if (dragOverlay) {
     return {
       className:
         "border-sky-50/90 bg-linear-to-br from-white via-white to-sky-50/12 shadow-[0_4px_20px_-4px_rgba(240,249,255,0.85),0_2px_8px_-2px_rgba(224,242,254,0.45)]",
+      textColors: LIGHT_CARD_TEXT,
     }
   }
   return {
@@ -213,6 +270,7 @@ function customOurBellAppearance(hex: string, dragOverlay?: boolean): LinkCardAp
       backgroundColor: hex,
       borderColor: rgbaFromHex(hex, 0.45),
     },
+    textColors: getLinkCardTextColors(hex),
   }
 }
 
@@ -221,6 +279,7 @@ function customMyBellAppearance(hex: string, dragOverlay?: boolean): LinkCardApp
     return {
       className:
         "border-slate-200 bg-white shadow-[0_8px_28px_-8px_rgba(15,23,42,0.12),0_2px_8px_-2px_rgba(15,23,42,0.06)]",
+      textColors: LIGHT_CARD_TEXT,
     }
   }
   return {
@@ -229,6 +288,7 @@ function customMyBellAppearance(hex: string, dragOverlay?: boolean): LinkCardApp
       backgroundColor: hex,
       borderColor: rgbaFromHex(hex, 0.45),
     },
+    textColors: getLinkCardTextColors(hex),
   }
 }
 
@@ -241,12 +301,17 @@ export function getOurBellLinkCardAppearance(
   }
   const key = normalizeLinkColorKey(colorKey)
   const style = LINK_COLOR_STYLES[key].ourBell
+  const bgHex = getBackgroundHexForColorKey(colorKey)
   if (options?.dragOverlay) {
     return {
       className: `${style.base} border-sky-50/90 bg-linear-to-br from-white via-white to-sky-50/12 shadow-[0_4px_20px_-4px_rgba(240,249,255,0.85),0_2px_8px_-2px_rgba(224,242,254,0.45)]`,
+      textColors: LIGHT_CARD_TEXT,
     }
   }
-  return { className: `${style.base} ${style.hover}` }
+  return {
+    className: `${style.base} ${style.hover}`,
+    textColors: getLinkCardTextColors(bgHex),
+  }
 }
 
 export function getMyBellLinkCardAppearance(
@@ -258,13 +323,18 @@ export function getMyBellLinkCardAppearance(
   }
   const key = normalizeLinkColorKey(colorKey)
   const style = LINK_COLOR_STYLES[key].myBell
+  const bgHex = getBackgroundHexForColorKey(colorKey)
   if (options?.dragOverlay) {
     return {
       className:
         "border-slate-200 bg-white shadow-[0_8px_28px_-8px_rgba(15,23,42,0.12),0_2px_8px_-2px_rgba(15,23,42,0.06)]",
+      textColors: LIGHT_CARD_TEXT,
     }
   }
-  return { className: `${style.base} ${style.hover}` }
+  return {
+    className: `${style.base} ${style.hover}`,
+    textColors: getLinkCardTextColors(bgHex),
+  }
 }
 
 export function getOurBellLinkCardClasses(

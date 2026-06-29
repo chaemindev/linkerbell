@@ -62,7 +62,11 @@ export function LinkRowContent({
         cardAppearance.className,
         sortableDrag && !dragOverlay && "cursor-grab touch-manipulation active:cursor-grabbing [-webkit-touch-callout:none]",
       )}
-      style={cardAppearance.style}
+      style={{
+        ...cardAppearance.style,
+        ["--link-title" as string]: cardAppearance.textColors.title,
+        ["--link-title-hover" as string]: cardAppearance.textColors.titleHover,
+      }}
       onContextMenu={(e) => {
         if (sortableDrag) e.preventDefault()
       }}
@@ -79,7 +83,7 @@ export function LinkRowContent({
         aria-label={`${link.title}, 새 탭에서 열기`}
       >
         <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden pr-2">
-          <span className="line-clamp-1 text-sm font-medium tracking-tight text-slate-900 group-hover:text-slate-950">
+          <span className="line-clamp-1 text-sm font-medium tracking-tight text-(--link-title) transition-colors group-hover:text-(--link-title-hover)">
             {link.title}
           </span>
         </div>
