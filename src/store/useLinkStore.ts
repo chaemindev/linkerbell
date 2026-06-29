@@ -40,6 +40,8 @@ interface Link {
   sort_order: number
   /** 누적 클릭 수 (UI 비표시) — DB `click_count` */
   click_count: number
+  /** 링크 카드 배경색 키 — DB `color_key`, null이면 기본 */
+  color_key: string | null
 }
 
 interface Category {
@@ -71,7 +73,7 @@ interface LinkStore {
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
   updateLink: (
     linkId: number,
-    updates: { title?: string; url?: string },
+    updates: { title?: string; url?: string; colorKey?: string | null },
   ) => Promise<boolean>
   deleteLink: (linkId: number) => Promise<void>
   reorderLinks: (categoryId: number, orderedLinkIds: number[]) => Promise<void>
@@ -124,6 +126,7 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
         click_count: toClickCount(
           link.click_count ?? link.clickCount ?? link.click_counting ?? link.clickCounting,
         ),
+        color_key: (link.color_key ?? link.colorKey ?? null) as string | null,
       }))
       links.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id)
       return {
@@ -253,8 +256,8 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
     await fetchCategories()
   },
 
-  updateLink: async (linkId: number, updates: { title?: string; url?: string }) => {
-    const patch: Record<string, string> = {}
+  updateLink: async (linkId: number, updates: { title?: string; url?: string; colorKey?: string | null }) => {
+    const patch: Record<string, string | null> = {}
     if (updates.title !== undefined) {
       const t = updates.title.trim()
       if (!t) return false
@@ -264,6 +267,9 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
       const u = updates.url.trim()
       if (!u) return false
       patch.page_url = u.startsWith("http") ? u : `https://${u}`
+    }
+    if (updates.colorKey !== undefined) {
+      patch.color_key = updates.colorKey
     }
     if (Object.keys(patch).length === 0) return false
 

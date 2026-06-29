@@ -8,30 +8,41 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { useLinkStore } from "@/store/useLinkStore"
+import { LinkColorPicker } from "@/components/common/LinkColorPicker"
+import {
+  linkColorToStored,
+  storedToLinkColorValue,
+  type LinkColorValue,
+} from "@/lib/linkColorPalette"
 
 export interface EditLinkDialogProps {
   linkId: number
   initialTitle: string
   initialUrl: string
+  initialColorKey?: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  previewVariant?: "our-bell" | "my-bell"
+  onSave: (updates: {
+    title: string
+    url: string
+    colorKey: string | null
+  }) => Promise<boolean> | boolean
 }
 
 function EditLinkDialogForm({
-  linkId,
   initialTitle,
   initialUrl,
+  initialColorKey,
   onOpenChange,
-}: {
-  linkId: number
-  initialTitle: string
-  initialUrl: string
-  onOpenChange: (open: boolean) => void
-}) {
+  onSave,
+  previewVariant = "our-bell",
+}: Omit<EditLinkDialogProps, "linkId" | "open">) {
   const [title, setTitle] = useState(initialTitle)
   const [url, setUrl] = useState(initialUrl)
-  const updateLink = useLinkStore((state) => state.updateLink)
+  const [colorValue, setColorValue] = useState<LinkColorValue>(
+    storedToLinkColorValue(initialColorKey),
+  )
 
   const handleSubmit = async () => {
     const t = title.trim()
@@ -44,7 +55,11 @@ function EditLinkDialogForm({
       alert("URL을 입력해 주세요.")
       return
     }
-    const ok = await updateLink(linkId, { title: t, url: u })
+    const ok = await onSave({
+      title: t,
+      url: u,
+      colorKey: linkColorToStored(colorValue),
+    })
     if (ok) onOpenChange(false)
   }
 
@@ -79,9 +94,20 @@ function EditLinkDialogForm({
             onKeyDown={(e) => e.key === "Enter" && void handleSubmit()}
           />
         </div>
+        <LinkColorPicker
+          value={colorValue}
+          onChange={setColorValue}
+          title={title}
+          url={url}
+          previewVariant={previewVariant}
+        />
       </div>
       <DialogFooter>
-        <Button type="button" onClick={() => void handleSubmit()} className="h-11 w-full bg-slate-900 font-bold">
+        <Button
+          type="button"
+          onClick={() => void handleSubmit()}
+          className="h-11 w-full bg-slate-900 font-bold"
+        >
           저장하기
         </Button>
       </DialogFooter>
@@ -93,8 +119,11 @@ export function EditLinkDialog({
   linkId,
   initialTitle,
   initialUrl,
+  initialColorKey = null,
   open,
   onOpenChange,
+  previewVariant = "our-bell",
+  onSave,
 }: EditLinkDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,10 +131,12 @@ export function EditLinkDialog({
         {open ? (
           <EditLinkDialogForm
             key={linkId}
-            linkId={linkId}
             initialTitle={initialTitle}
             initialUrl={initialUrl}
+            initialColorKey={initialColorKey}
             onOpenChange={onOpenChange}
+            onSave={onSave}
+            previewVariant={previewVariant}
           />
         ) : null}
       </DialogContent>

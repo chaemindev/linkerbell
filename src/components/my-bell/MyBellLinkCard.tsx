@@ -1,4 +1,5 @@
 import { MousePointer2 } from "lucide-react"
+import { getMyBellLinkCardAppearance } from "@/lib/linkColorPalette"
 import { openLinkInNewTab } from "@/lib/url"
 import { useMyBellStore } from "@/store/useMyBellStore"
 import { cn } from "@/lib/utils"
@@ -8,6 +9,7 @@ interface Props {
   title: string
   url: string
   clickCount: number
+  colorKey?: string | null
   /** 드래그 중 떠 있는 미리보기 */
   dragOverlay?: boolean
 }
@@ -20,21 +22,28 @@ function getDomain(url: string): string {
   }
 }
 
-export function MyBellLinkCard({ id, title, url, clickCount, dragOverlay = false }: Props) {
+export function MyBellLinkCard({
+  id,
+  title,
+  url,
+  clickCount,
+  colorKey = null,
+  dragOverlay = false,
+}: Props) {
   const recordClick = useMyBellStore((s) => s.recordClick)
 
   const isHot = clickCount >= 30
   const domain = getDomain(url)
+  const appearance = getMyBellLinkCardAppearance(colorKey, { dragOverlay })
 
   return (
     <button
       type="button"
       className={cn(
-        "group flex w-full items-center gap-3 rounded-xl border bg-white px-5 py-2 text-left transition-all duration-200",
-        dragOverlay
-          ? "border-slate-200 shadow-[0_8px_28px_-8px_rgba(15,23,42,0.12),0_2px_8px_-2px_rgba(15,23,42,0.06)]"
-          : "border-slate-100 shadow-sm hover:border-slate-200 hover:shadow-md",
+        "group flex w-full items-center gap-3 rounded-xl border px-5 py-2 text-left transition-all duration-200",
+        appearance.className,
       )}
+      style={appearance.style}
       onClick={() => {
         recordClick(id)
         openLinkInNewTab(url)

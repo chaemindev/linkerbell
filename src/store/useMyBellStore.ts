@@ -7,6 +7,8 @@ export interface MyBellLink {
   categoryId: number
   clickCount: number
   savedAt: number
+  /** 링크 카드 배경색 — null이면 기본 */
+  colorKey?: string | null
 }
 
 export interface MyBellCategory {
@@ -28,7 +30,7 @@ interface MyBellStore extends PersistedData {
   reorderCategories: (orderedIds: number[]) => void
   addLink: (categoryId: number, title: string, url: string) => void
   reorderLinks: (categoryId: number, orderedIds: number[]) => void
-  updateLink: (id: number, updates: { title?: string; url?: string }) => void
+  updateLink: (id: number, updates: { title?: string; url?: string; colorKey?: string | null }) => void
   deleteLink: (id: number) => void
   recordClick: (id: number) => void
 }
@@ -139,6 +141,7 @@ export const useMyBellStore = create<MyBellStore>()((set) => ({
           ...l,
           ...(updates.title?.trim() ? { title: updates.title.trim() } : {}),
           ...(url ? { url: url.startsWith("http") ? url : `https://${url}` } : {}),
+          ...(updates.colorKey !== undefined ? { colorKey: updates.colorKey } : {}),
         }
       })
       save(s.userName, s.categories, links)

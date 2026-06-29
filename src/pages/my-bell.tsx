@@ -179,6 +179,7 @@ export default function MyBell() {
                     title={overlayLink.title}
                     url={overlayLink.url}
                     clickCount={overlayLink.clickCount}
+                    colorKey={overlayLink.colorKey}
                   />
                 </div>
               ) : overlayCategory ? (
@@ -188,6 +189,7 @@ export default function MyBell() {
                     id: l.id,
                     title: l.title,
                     url: l.url,
+                    color_key: l.colorKey ?? null,
                   }))}
                 />
               ) : null}

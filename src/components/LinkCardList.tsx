@@ -9,6 +9,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { EditLinkDialog } from "@/components/EditLinkDialog"
 import { LinkCardEdit } from "@/components/LinkCardEdit"
 import { sortableTransition } from "@/lib/dndSortable"
+import { getOurBellLinkCardAppearance } from "@/lib/linkColorPalette"
 import { openLinkInNewTab } from "@/lib/url"
 import { cn } from "@/lib/utils"
 import { useLinkStore } from "@/store/useLinkStore"
@@ -17,6 +18,7 @@ export interface LinkCardListItem {
   id: number
   title: string
   url: string
+  color_key?: string | null
 }
 
 export interface LinkCardListProps {
@@ -49,15 +51,18 @@ export function LinkRowContent({
   setMenuOpenLinkId: Dispatch<SetStateAction<number | null>>
   onDeleteLink: (linkId: number, title: string) => void
 }) {
+  const cardAppearance = getOurBellLinkCardAppearance(link.color_key, {
+    dragOverlay,
+  })
+
   return (
     <div
       className={cn(
         "group flex h-15 min-w-85 shrink-0 items-center overflow-hidden rounded-[40px] border transition-[box-shadow,background-color,transform] duration-420 ease-[cubic-bezier(0.22,1,0.36,1)]",
-        dragOverlay
-          ? "border-sky-50/90 bg-linear-to-br from-white via-white to-sky-50/12 shadow-[0_4px_20px_-4px_rgba(240,249,255,0.85),0_2px_8px_-2px_rgba(224,242,254,0.45)]"
-          : "border-slate-50 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02),0_8px_30px_-8px_rgba(0,0,0,0.05)] hover:bg-slate-50/80 hover:shadow-[0_2px_4px_rgba(0,0,0,0.03),0_14px_40px_-10px_rgba(0,0,0,0.07)]",
+        cardAppearance.className,
         sortableDrag && !dragOverlay && "cursor-grab touch-manipulation active:cursor-grabbing [-webkit-touch-callout:none]",
       )}
+      style={cardAppearance.style}
       onContextMenu={(e) => {
         if (sortableDrag) e.preventDefault()
       }}
@@ -154,6 +159,7 @@ export function LinkCardList({
   const items = (links ?? []).filter((link) => link?.title != null)
   const [editingLink, setEditingLink] = useState<LinkCardListItem | null>(null)
   const [menuOpenLinkId, setMenuOpenLinkId] = useState<number | null>(null)
+  const updateLink = useLinkStore((state) => state.updateLink)
 
   const dragEnabled = Boolean(onReorderLinks && items.length > 1)
   const sortableIds = items.map((l) => `link-${l.id}`)
@@ -207,9 +213,15 @@ export function LinkCardList({
         linkId={editingLink?.id ?? 0}
         initialTitle={editingLink?.title ?? ""}
         initialUrl={editingLink?.url ?? ""}
+        initialColorKey={editingLink?.color_key ?? null}
         open={editingLink !== null}
+        previewVariant="our-bell"
         onOpenChange={(next) => {
           if (!next) setEditingLink(null)
+        }}
+        onSave={async (updates) => {
+          if (!editingLink) return false
+          return updateLink(editingLink.id, updates)
         }}
       />
     </ul>

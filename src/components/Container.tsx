@@ -27,13 +27,18 @@ import { PageTitle } from "./PageTitle"
 import { useLinkStore } from "@/store/useLinkStore"
 
 function findLinkInCategories(
-  categories: { id: number; links: { id: number; title: string; url: string }[] }[],
+  categories: { id: number; links: { id: number; title: string; url: string; color_key?: string | null }[] }[],
   linkId: number,
 ): LinkCardListItem | null {
   for (const c of categories) {
     const link = c.links.find((l) => l.id === linkId)
     if (link) {
-      return { id: link.id, title: link.title, url: link.url }
+      return {
+        id: link.id,
+        title: link.title,
+        url: link.url,
+        color_key: link.color_key ?? null,
+      }
     }
   }
   return null

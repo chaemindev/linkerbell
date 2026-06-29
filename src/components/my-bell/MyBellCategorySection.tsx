@@ -6,6 +6,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { EditLinkDialog } from "@/components/EditLinkDialog"
 import { MyBellLinkCard } from "@/components/my-bell/MyBellLinkCard"
 import { useMyBellStore } from "@/store/useMyBellStore"
 import { CATEGORY_PALETTE } from "@/components/my-bell/myBellConstants"
@@ -17,6 +18,7 @@ interface Link {
   title: string
   url: string
   clickCount: number
+  colorKey?: string | null
 }
 
 interface Props {
@@ -52,38 +54,9 @@ function LinkRow({
     ...(isDragging ? { opacity: 0 } : undefined),
   }
 
-  const [editing, setEditing] = useState(false)
-  const [titleDraft, setTitleDraft] = useState("")
-  const [urlDraft, setUrlDraft] = useState("")
-  const titleRef = useRef<HTMLInputElement>(null)
-  const formRef = useRef<HTMLDivElement>(null)
+  const [editOpen, setEditOpen] = useState(false)
 
-  const startEdit = () => {
-    setTitleDraft(link.title)
-    setUrlDraft(link.url)
-    setEditing(true)
-    setTimeout(() => titleRef.current?.focus(), 0)
-  }
-
-  const confirmEdit = () => {
-    if (!titleDraft.trim() || !urlDraft.trim()) return
-    updateLink(link.id, { title: titleDraft, url: urlDraft })
-    setEditing(false)
-  }
-
-  const cancelEdit = () => setEditing(false)
-
-  // 외부 클릭 시 편집 폼 닫기
-  useEffect(() => {
-    if (!editing) return
-    const handler = (e: MouseEvent) => {
-      if (formRef.current && !formRef.current.contains(e.target as Node)) {
-        cancelEdit()
-      }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [editing])
+  const startEdit = () => setEditOpen(true)
 
   const handleDelete = () => {
     if (window.confirm(`"${link.title}" 링크를 삭제할까요?`)) {
@@ -91,94 +64,71 @@ function LinkRow({
     }
   }
 
-  if (editing) {
-    return (
-      <div
-        ref={formRef}
-        className="flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50/60 px-3 py-2.5"
-      >
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <input
-            ref={titleRef}
-            placeholder="링크 이름"
-            className="h-7 w-full min-w-0 rounded-md border border-slate-200 bg-white px-2.5 text-xs outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200"
-            value={titleDraft}
-            onChange={(e) => setTitleDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") confirmEdit()
-              if (e.key === "Escape") cancelEdit()
-            }}
-          />
-          <input
-            placeholder="URL (예: google.com)"
-            className="h-7 w-full min-w-0 rounded-md border border-slate-200 bg-white px-2.5 text-xs outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200"
-            value={urlDraft}
-            onChange={(e) => setUrlDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") confirmEdit()
-              if (e.key === "Escape") cancelEdit()
-            }}
-          />
-        </div>
-        <button
-          type="button"
-          onClick={confirmEdit}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-violet-500 text-white transition-colors hover:bg-violet-600"
-        >
-          <Check className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    )
-  }
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn("group relative", isDragging && "relative z-10")}
-    >
+    <>
       <div
-        className={cn(
-          "relative min-w-0",
-          dragEnabled &&
-            "cursor-grab touch-manipulation active:cursor-grabbing [-webkit-touch-callout:none]",
-        )}
-        onContextMenu={(e) => {
-          if (dragEnabled) e.preventDefault()
-        }}
-        {...(dragEnabled ? attributes : {})}
-        {...(dragEnabled ? listeners : {})}
+        ref={setNodeRef}
+        style={style}
+        className={cn("group relative", isDragging && "relative z-10")}
       >
-        <MyBellLinkCard
-          id={link.id}
-          title={link.title}
-          url={link.url}
-          clickCount={link.clickCount}
-        />
         <div
-          className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-          onPointerDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
+          className={cn(
+            "relative min-w-0",
+            dragEnabled &&
+              "cursor-grab touch-manipulation active:cursor-grabbing [-webkit-touch-callout:none]",
+          )}
+          onContextMenu={(e) => {
+            if (dragEnabled) e.preventDefault()
+          }}
+          {...(dragEnabled ? attributes : {})}
+          {...(dragEnabled ? listeners : {})}
         >
-          <button
-            type="button"
-            aria-label="링크 수정"
-            onClick={startEdit}
-            className="flex h-6 w-6 items-center justify-center rounded bg-white/90 text-slate-400 shadow-sm transition-colors hover:bg-violet-50 hover:text-violet-500"
+          <MyBellLinkCard
+            id={link.id}
+            title={link.title}
+            url={link.url}
+            clickCount={link.clickCount}
+            colorKey={link.colorKey}
+          />
+          <div
+            className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
           >
-            <Pencil className="h-3 w-3" />
-          </button>
-          <button
-            type="button"
-            aria-label="링크 삭제"
-            onClick={handleDelete}
-            className="flex h-6 w-6 items-center justify-center rounded bg-white/90 text-slate-400 shadow-sm transition-colors hover:bg-rose-50 hover:text-rose-500"
-          >
-            <Trash2 className="h-3 w-3" />
-          </button>
+            <button
+              type="button"
+              aria-label="링크 수정"
+              onClick={startEdit}
+              className="flex h-6 w-6 items-center justify-center rounded bg-white/90 text-slate-400 shadow-sm transition-colors hover:bg-violet-50 hover:text-violet-500"
+            >
+              <Pencil className="h-3 w-3" />
+            </button>
+            <button
+              type="button"
+              aria-label="링크 삭제"
+              onClick={handleDelete}
+              className="flex h-6 w-6 items-center justify-center rounded bg-white/90 text-slate-400 shadow-sm transition-colors hover:bg-rose-50 hover:text-rose-500"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <EditLinkDialog
+        linkId={link.id}
+        initialTitle={link.title}
+        initialUrl={link.url}
+        initialColorKey={link.colorKey ?? null}
+        open={editOpen}
+        previewVariant="my-bell"
+        onOpenChange={setEditOpen}
+        onSave={(updates) => {
+          updateLink(link.id, updates)
+          return true
+        }}
+      />
+    </>
   )
 }
 
