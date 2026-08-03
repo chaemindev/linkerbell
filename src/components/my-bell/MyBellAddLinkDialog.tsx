@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { isValidUrl } from "@/lib/url"
 
 interface Category {
   id: number
@@ -53,6 +54,10 @@ export function MyBellAddLinkDialog({ open, onOpenChange, categories, onAdd, onA
   const handleSubmit = () => {
     if (!categoryId || !title.trim() || !url.trim()) {
       alert("카테고리, 링크 이름, URL을 모두 입력해 주세요.")
+      return
+    }
+    if (!isValidUrl(url)) {
+      alert("올바른 URL 형식이 아니에요. 예: example.com")
       return
     }
     onAdd(categoryId as number, title.trim(), url.trim())

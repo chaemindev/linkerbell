@@ -14,6 +14,7 @@ import {
   storedToLinkColorValue,
   type LinkColorValue,
 } from "@/lib/linkColorPalette"
+import { isValidUrl } from "@/lib/url"
 
 export interface EditLinkDialogProps {
   linkId: number
@@ -53,6 +54,10 @@ function EditLinkDialogForm({
     }
     if (!u) {
       alert("URL을 입력해 주세요.")
+      return
+    }
+    if (!isValidUrl(u)) {
+      alert("올바른 URL 형식이 아니에요. 예: example.com")
       return
     }
     const ok = await onSave({

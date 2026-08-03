@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Plus } from "lucide-react"
+import { isValidUrl } from "@/lib/url"
 
 interface AddLinkDialogProps {
   categoryName: string
@@ -25,6 +26,10 @@ export function AddLinkDialog({ categoryName, onAdd, variant }: AddLinkDialogPro
   const handleSubmit = () => {
     if (!title || !url) {
       alert("입력해주세요.")
+      return
+    }
+    if (!isValidUrl(url)) {
+      alert("올바른 URL 형식이 아니에요. 예: example.com")
       return
     }
     onAdd(title, url)

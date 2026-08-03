@@ -8,6 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { isValidUrl } from "@/lib/url"
+
 export interface AddFeaturedLinkProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -31,6 +33,10 @@ export function AddFeaturedLink({ open, onOpenChange, onAdd }: AddFeaturedLinkPr
 
   const handleSubmit = async () => {
     if (pending) return
+    if (!isValidUrl(url)) {
+      alert("올바른 URL 형식이 아니에요. 예: example.com")
+      return
+    }
     setPending(true)
     try {
       const key = faviconKey.trim()

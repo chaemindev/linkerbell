@@ -11,6 +11,7 @@ import { MyBellLinkCard } from "@/components/my-bell/MyBellLinkCard"
 import { useMyBellStore } from "@/store/useMyBellStore"
 import { CATEGORY_PALETTE } from "@/components/my-bell/myBellConstants"
 import { sortableTransition } from "@/lib/dndSortable"
+import { isValidUrl } from "@/lib/url"
 import { cn } from "@/lib/utils"
 
 interface Link {
@@ -183,6 +184,10 @@ export function MyBellCategorySection({
 
   const confirmAdd = () => {
     if (!titleDraft.trim() || !urlDraft.trim()) return
+    if (!isValidUrl(urlDraft)) {
+      alert("올바른 URL 형식이 아니에요. 예: example.com")
+      return
+    }
     addLink(id, titleDraft.trim(), urlDraft.trim())
     setTitleDraft("")
     setUrlDraft("")
