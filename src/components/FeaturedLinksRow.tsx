@@ -80,7 +80,7 @@ export function FeaturedLinksRow({
         </h2>
       </div>
       <nav
-        className={cn("flex w-full flex-wrap items-center justify-start gap-3 sm:gap-3.5")}
+        className={cn("flex w-full flex-wrap items-start justify-start gap-x-3 gap-y-4 sm:gap-x-3.5")}
         aria-label="코어 링크 10개 목록"
       >
       {items.map((item) => {
@@ -94,79 +94,72 @@ export function FeaturedLinksRow({
         return (
           <div
             key={rowKey}
-            className="group/item group/tooltip relative inline-flex touch-manipulation"
+            className="group/item flex w-16 shrink-0 flex-col items-center gap-1.5 touch-manipulation sm:w-[4.5rem]"
           >
-            <button
-              type="button"
-              onClick={() => {
-                onBeforeOpenLink?.(item)
-                openLinkInNewTab(item.url)
-              }}
-              className={cn(
-                "focus-visible:ring-ring flex size-11 shrink-0 items-center justify-center rounded-full border p-0 text-sm font-medium shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-[border-color,background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:size-12",
-                bgClass,
-              )}
-            >
-              {iconSrc && k ? (
-                <img
-                  src={iconSrc}
-                  alt=""
-                  className="size-6 shrink-0 rounded-full  border-slate-200/90 bg-white object-contain dark:border-slate-600/60 sm:size-7"
-                  loading="lazy"
-                  decoding="async"
-                  onError={(e) => {
-                    const el = e.currentTarget
-                    const isIco = /\.ico(\?|$)/i.test(el.src)
-                    if (!isIco) {
-                      el.src = `/favicon/${k}.ico`
-                      return
-                    }
-                    el.onerror = null
-                  }}
-                />
-              ) : (
-                <span
-                  className="select-none text-[15px] font-semibold leading-none sm:text-base"
-                  aria-hidden
-                >
-                  {titleInitial(item.title)}
-                </span>
-              )}
-            </button>
-            {canDelete ? (
+            <div className="relative">
               <button
                 type="button"
-                aria-label={`${item.title} 스포트라이트 링크 삭제`}
-                className={cn(
-                  "focus-visible:ring-ring absolute -top-0.5 -right-0.5 z-[60] flex size-4 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-slate-600 shadow-sm transition-[opacity,background-color,color,border-color] duration-200",
-                  "hover:border-red-200/90 hover:bg-red-50 hover:text-red-600",
-                  "opacity-0 group-hover/item:opacity-100 pointer-coarse:opacity-100",
-                  "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                  "dark:border-slate-600 dark:bg-slate-900/95 dark:text-slate-300 dark:hover:border-red-400/50 dark:hover:bg-red-950/50 dark:hover:text-red-300",
-                )}
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  const id = item.id
-                  if (id != null) onDeleteFeaturedLink(id, item.title)
+                onClick={() => {
+                  onBeforeOpenLink?.(item)
+                  openLinkInNewTab(item.url)
                 }}
+                title={item.title}
+                className={cn(
+                  "focus-visible:ring-ring flex size-11 shrink-0 items-center justify-center rounded-full border p-0 text-sm font-medium shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-[border-color,background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:size-12",
+                  bgClass,
+                )}
               >
-                <X className="size-2.5 shrink-0" strokeWidth={2.25} aria-hidden />
+                {iconSrc && k ? (
+                  <img
+                    src={iconSrc}
+                    alt=""
+                    className="size-6 shrink-0 rounded-full  border-slate-200/90 bg-white object-contain dark:border-slate-600/60 sm:size-7"
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      const el = e.currentTarget
+                      const isIco = /\.ico(\?|$)/i.test(el.src)
+                      if (!isIco) {
+                        el.src = `/favicon/${k}.ico`
+                        return
+                      }
+                      el.onerror = null
+                    }}
+                  />
+                ) : (
+                  <span
+                    className="select-none text-[15px] font-semibold leading-none sm:text-base"
+                    aria-hidden
+                  >
+                    {titleInitial(item.title)}
+                  </span>
+                )}
               </button>
-            ) : null}
-            <div
-              role="tooltip"
-              className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 flex w-max max-w-[min(90vw,20rem)] -translate-x-1/2 flex-col items-center opacity-0 transition-[opacity,transform] duration-200 ease-out -translate-y-1 group-hover/tooltip:translate-y-0 group-hover/tooltip:opacity-100"
-            >
-              <div className="relative -mb-px flex shrink-0 flex-col items-center" aria-hidden>
-                {/* 바깥: 테두리 색 / 안쪽: 배경 — 말풍선 border와 맞춤 */}
-                <div className="h-0 w-0 border-x-[9px] border-x-transparent border-b-[9px] border-b-border" />
-                <div className="absolute left-1/2 top-px h-0 w-0 -translate-x-1/2 border-x-8 border-x-transparent border-b-8 border-b-popover" />
-              </div>
-              <div className="rounded-2xl border border-border bg-popover px-3.5 py-2.5 text-center text-sm font-medium leading-snug tracking-tight text-popover-foreground shadow-[0_12px_40px_-10px_rgba(15,23,42,0.18)] ring-1 ring-black/3 dark:shadow-[0_12px_48px_-12px_rgba(0,0,0,0.55)] dark:ring-white/6">
-                <span className="whitespace-normal">{item.title}</span>
-              </div>
+              {canDelete ? (
+                <button
+                  type="button"
+                  aria-label={`${item.title} 스포트라이트 링크 삭제`}
+                  className={cn(
+                    "focus-visible:ring-ring absolute -top-0.5 -right-0.5 z-[60] flex size-4 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-slate-600 shadow-sm transition-[opacity,background-color,color,border-color] duration-200",
+                    "hover:border-red-200/90 hover:bg-red-50 hover:text-red-600",
+                    "opacity-0 group-hover/item:opacity-100 pointer-coarse:opacity-100",
+                    "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                    "dark:border-slate-600 dark:bg-slate-900/95 dark:text-slate-300 dark:hover:border-red-400/50 dark:hover:bg-red-950/50 dark:hover:text-red-300",
+                  )}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    const id = item.id
+                    if (id != null) onDeleteFeaturedLink(id, item.title)
+                  }}
+                >
+                  <X className="size-2.5 shrink-0" strokeWidth={2.25} aria-hidden />
+                </button>
+              ) : null}
             </div>
+            <span className="line-clamp-2 w-full text-center text-[12px] font-medium leading-tight text-slate-600 dark:text-slate-400">
+              {item.title}
+            </span>
           </div>
         )
       })}
