@@ -11,6 +11,7 @@ interface Link {
 interface LinkCardProps {
   id: number
   name: string
+  colorIndex: number
   links: Link[]
   onAddLink: (categoryId: number, title: string, url: string) => void
   onDeleteLink: (linkId: number, title: string) => void
@@ -24,6 +25,7 @@ interface LinkCardProps {
 export function LinkCard({
   id,
   name,
+  colorIndex,
   links,
   onAddLink,
   onDeleteLink,
@@ -34,10 +36,11 @@ export function LinkCard({
   categoryDragListeners,
 }: LinkCardProps) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5 rounded-3xl bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.03),0_20px_40px_-20px_rgba(15,23,42,0.14)]">
       <LinkCardHeader
         categoryId={id}
         categoryName={name}
+        colorIndex={colorIndex}
         onAddLink={onAddLink}
         onDeleteCategory={onDeleteCategory}
         categoryDragActivatorNodeRef={categoryDragActivatorNodeRef}

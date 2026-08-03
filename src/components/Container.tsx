@@ -173,11 +173,12 @@ export function Container() {
       : null
 
   const grid = (
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-      {categories.map((category) => (
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+      {categories.map((category, index) => (
         <SortableCategoryCard
           key={category.id}
           category={category}
+          colorIndex={index}
           categoryReorderEnabled={categoryReorderEnabled}
           onAddLink={handleAddLink}
           onDeleteLink={handleDeleteLink}
@@ -189,7 +190,7 @@ export function Container() {
   )
 
   return (
-    <main className="mx-auto max-w-7xl flex-1 px-6 py-12">
+    <main className="mx-auto max-w-[1800px] flex-1 px-6 py-12 xl:px-10">
       <PageTitle />
       <FeaturedLinksRow
         links={
@@ -246,6 +247,7 @@ export function Container() {
             ) : overlayCategory ? (
               <CategoryCardDragOverlay
                 categoryName={overlayCategory.name}
+                colorIndex={categories.findIndex((c) => c.id === overlayCategory.id)}
                 links={overlayCategory.links.map((l) => ({
                   id: l.id,
                   title: l.title,

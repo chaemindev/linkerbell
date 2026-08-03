@@ -9,10 +9,40 @@ import { CSS } from "@dnd-kit/utilities"
 import { EditLinkDialog } from "@/components/EditLinkDialog"
 import { LinkCardEdit } from "@/components/LinkCardEdit"
 import { sortableTransition } from "@/lib/dndSortable"
-import { getOurBellLinkCardAppearance } from "@/lib/linkColorPalette"
+import {
+  getLinkCardTextColors,
+  getOurBellLinkCardAppearance,
+  isCustomLinkColor,
+  normalizeHexColor,
+  normalizeLinkColorKey,
+  type LinkColorKey,
+} from "@/lib/linkColorPalette"
 import { openLinkInNewTab } from "@/lib/url"
 import { cn } from "@/lib/utils"
 import { useLinkStore } from "@/store/useLinkStore"
+
+/** 링크 리스트 행(플랫 스타일) 배경/점 색 — 프리셋 컬러별 */
+const FLAT_ROW_BG: Record<LinkColorKey, string> = {
+  default: "",
+  rose: "bg-rose-100/70 hover:bg-rose-200/60",
+  sky: "bg-sky-100/70 hover:bg-sky-200/60",
+  violet: "bg-violet-100/70 hover:bg-violet-200/60",
+  emerald: "bg-emerald-100/70 hover:bg-emerald-200/60",
+  amber: "bg-amber-100/70 hover:bg-amber-200/60",
+  purple: "bg-purple-100/70 hover:bg-purple-200/60",
+  teal: "bg-teal-100/70 hover:bg-teal-200/60",
+}
+
+const FLAT_ROW_DOT: Record<LinkColorKey, string> = {
+  default: "bg-slate-300",
+  rose: "bg-rose-400",
+  sky: "bg-sky-400",
+  violet: "bg-violet-400",
+  emerald: "bg-emerald-400",
+  amber: "bg-amber-400",
+  purple: "bg-purple-400",
+  teal: "bg-teal-400",
+}
 
 export interface LinkCardListItem {
   id: number
@@ -51,22 +81,41 @@ export function LinkRowContent({
   setMenuOpenLinkId: Dispatch<SetStateAction<number | null>>
   onDeleteLink: (linkId: number, title: string) => void
 }) {
-  const cardAppearance = getOurBellLinkCardAppearance(link.color_key, {
-    dragOverlay,
-  })
+  if (dragOverlay) {
+    const cardAppearance = getOurBellLinkCardAppearance(link.color_key, { dragOverlay })
+    return (
+      <div
+        className={cn(
+          "group flex h-15 min-w-85 shrink-0 items-center overflow-hidden rounded-[40px] border",
+          cardAppearance.className,
+        )}
+        style={{
+          ...cardAppearance.style,
+          ["--link-title" as string]: cardAppearance.textColors.title,
+        }}
+      >
+        <div className="flex min-h-0 min-w-0 flex-1 items-center px-6 py-4">
+          <span className="line-clamp-1 text-sm font-medium tracking-tight text-(--link-title)">
+            {link.title}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  const isCustom = isCustomLinkColor(link.color_key)
+  const hex = isCustom ? normalizeHexColor(link.color_key as string) : null
+  const colorKey = normalizeLinkColorKey(link.color_key)
+  const customTextColors = hex ? getLinkCardTextColors(hex) : null
 
   return (
     <div
       className={cn(
-        "group flex h-15 min-w-85 shrink-0 items-center overflow-hidden rounded-[40px] border transition-[box-shadow,background-color,transform] duration-420 ease-[cubic-bezier(0.22,1,0.36,1)]",
-        cardAppearance.className,
-        sortableDrag && !dragOverlay && "cursor-grab touch-manipulation active:cursor-grabbing [-webkit-touch-callout:none]",
+        "group flex w-full min-w-0 items-center gap-3 rounded-2xl px-4 py-3 transition-colors duration-200",
+        !isCustom && (colorKey === "default" ? "hover:bg-slate-50" : FLAT_ROW_BG[colorKey]),
+        sortableDrag && "cursor-grab touch-manipulation active:cursor-grabbing [-webkit-touch-callout:none]",
       )}
-      style={{
-        ...cardAppearance.style,
-        ["--link-title" as string]: cardAppearance.textColors.title,
-        ["--link-title-hover" as string]: cardAppearance.textColors.titleHover,
-      }}
+      style={isCustom && hex ? { backgroundColor: `${hex}26` } : undefined}
       onContextMenu={(e) => {
         if (sortableDrag) e.preventDefault()
       }}
@@ -75,18 +124,27 @@ export function LinkRowContent({
     >
       <button
         type="button"
-        className="flex min-h-0 min-w-0 flex-1 cursor-pointer select-none items-center justify-between overflow-hidden border-0 bg-transparent px-6 py-4 pr-2 text-left [-webkit-touch-callout:none] [touch-callout:none] touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40 focus-visible:ring-offset-2"
+        className="flex min-h-0 min-w-0 flex-1 cursor-pointer select-none items-center gap-3 overflow-hidden border-0 bg-transparent text-left [-webkit-touch-callout:none] [touch-callout:none] touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40 focus-visible:ring-offset-2"
         onClick={() => {
           useLinkStore.getState().recordLinkClick(link.id)
           openLinkInNewTab(link.url)
         }}
         aria-label={`${link.title}, 새 탭에서 열기`}
       >
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden pr-2">
-          <span className="line-clamp-1 text-sm font-medium tracking-tight text-(--link-title) transition-colors group-hover:text-(--link-title-hover)">
-            {link.title}
-          </span>
-        </div>
+        <span
+          className={cn("size-2 shrink-0 rounded-full", !isCustom && FLAT_ROW_DOT[colorKey])}
+          style={isCustom && hex ? { backgroundColor: hex } : undefined}
+          aria-hidden
+        />
+        <span
+          className={cn(
+            "line-clamp-1 min-w-0 flex-1 text-[15px] font-medium tracking-tight",
+            !isCustom && "text-slate-800",
+          )}
+          style={isCustom && customTextColors ? { color: customTextColors.title } : undefined}
+        >
+          {link.title}
+        </span>
       </button>
       <div
         className="shrink-0 touch-manipulation"
@@ -204,11 +262,11 @@ export function LinkCardList({
   )
 
   return (
-    <ul className="min-h-0 flex-1 list-none space-y-3 overflow-hidden p-0">
+    <ul className="min-h-0 flex-1 list-none space-y-1 overflow-hidden p-0">
       {listBody}
 
       {items.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-[40px] border-2 border-dashed border-slate-100 p-8">
+        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-100 p-8">
           <p className="text-xs italic text-slate-400">저장된 링크가 없어요</p>
         </div>
       )}

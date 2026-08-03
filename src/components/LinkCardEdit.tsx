@@ -1,4 +1,4 @@
-import { Bell, Edit2, SquarePen, Trash2 } from "lucide-react"
+import { Bell, Edit2, PenLine, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -34,7 +34,7 @@ export function LinkCardEdit({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center pr-3 transition-opacity",
+        "flex shrink-0 items-center transition-opacity",
         keepVisible
           ? "opacity-100"
           : "opacity-100 md:opacity-0 md:group-hover:opacity-100",
@@ -45,9 +45,9 @@ export function LinkCardEdit({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-full text-pink-300 transition-colors hover:bg-pink-50/90 hover:text-pink-400 data-[state=open]:bg-pink-50 data-[state=open]:text-pink-400"
+            className="h-8 w-8 rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700 data-[state=open]:bg-slate-200 data-[state=open]:text-slate-700"
           >
-            <SquarePen className="h-4 w-4" />
+            <PenLine className="h-4 w-4" />
             <span className="sr-only">링크 메뉴</span>
           </Button>
         </DropdownMenuTrigger>

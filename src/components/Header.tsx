@@ -117,7 +117,7 @@ export default function Header({ myBellActive = false }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4">
+      <div className="mx-auto flex h-16 w-full max-w-[1800px] items-center justify-between gap-4 px-4">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="group flex cursor-pointer items-center gap-2.5">
             <FairyLogo />

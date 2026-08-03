@@ -16,6 +16,7 @@ export interface SortableCategoryCardProps {
     name: string
     links: LinkItem[]
   }
+  colorIndex: number
   categoryReorderEnabled: boolean
   onAddLink: (categoryId: number, title: string, url: string) => void
   onDeleteLink: (linkId: number, title: string) => void
@@ -25,6 +26,7 @@ export interface SortableCategoryCardProps {
 
 export function SortableCategoryCard({
   category,
+  colorIndex,
   categoryReorderEnabled,
   onAddLink,
   onDeleteLink,
@@ -57,6 +59,7 @@ export function SortableCategoryCard({
       <LinkCard
         id={category.id}
         name={category.name}
+        colorIndex={colorIndex}
         links={category.links}
         onAddLink={onAddLink}
         onDeleteLink={onDeleteLink}
