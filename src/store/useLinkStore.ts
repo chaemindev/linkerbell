@@ -62,18 +62,36 @@ interface FeaturedLinks {
   click_count: number
 }
 
+interface Notice {
+  id: number
+  tag: string
+  content: string
+  author: string
+  /** src/lib/noticeColors.ts NOTICE_COLORS 키 */
+  color: string
+  createdAt: string
+}
+
 interface LinkStore {
   categories: Category[]
   featuredLinks: FeaturedLinks[]
+  notices: Notice[]
 
   fetchCategories: () => Promise<void>
   fetchFeaturedLinks: () => Promise<void>
   addFeaturedLink: (title: string, url: string, faviconKey?: string) => Promise<boolean>
   deleteFeaturedLink: (featuredId: number) => Promise<void>
+  fetchNotices: () => Promise<void>
+  addNotice: (tag: string, content: string, author: string, color: string) => Promise<boolean>
+  updateNotice: (
+    noticeId: number,
+    updates: { tag?: string; content?: string; author?: string; color?: string },
+  ) => Promise<boolean>
+  deleteNotice: (noticeId: number) => Promise<void>
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
   updateLink: (
     linkId: number,
-    updates: { title?: string; url?: string; colorKey?: string | null },
+    updates: { title?: string; url?: string; colorKey?: string | null; categoryId?: number },
   ) => Promise<boolean>
   deleteLink: (linkId: number) => Promise<void>
   reorderLinks: (categoryId: number, orderedLinkIds: number[]) => Promise<void>
@@ -90,7 +108,8 @@ interface LinkStore {
 
 export const useLinkStore = create<LinkStore>((set, get) => ({
   categories: [],
-  
+  notices: [],
+
   // 🔥 서버에서 데이터 불러오기
   fetchCategories: async () => {
     // categories + links relation으로 한 번에 조회 (links 테이블 FK: category_id → categories.id)
@@ -228,6 +247,102 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
     await get().fetchFeaturedLinks()
   },
 
+  fetchNotices: async () => {
+    const { data, error } = await supabase
+      .from("notices")
+      .select("*")
+      .or("status.is.null,status.neq.D")
+      .order("id", { ascending: false })
+
+    if (error) {
+      console.error("[fetchNotices] 에러:", error.message)
+      return
+    }
+
+    const rows = (data ?? []) as Record<string, unknown>[]
+    const notices: Notice[] = rows.map((row) => ({
+      id: toInt8Id(row.id),
+      tag: ((row.tag ?? "") as string) || "전체",
+      content: (row.content as string) ?? "",
+      author: ((row.author ?? "") as string) || "익명",
+      color: (row.color as string) ?? "",
+      createdAt: (row.created_at as string) ?? "",
+    }))
+    set({ notices })
+  },
+
+  addNotice: async (tag: string, content: string, author: string, color: string) => {
+    const c = content.trim()
+    if (!c) {
+      alert("내용을 입력해 주세요.")
+      return false
+    }
+    const { error } = await supabase.from("notices").insert([
+      {
+        tag: tag.trim() || "전체",
+        content: c,
+        author: author.trim() || "익명",
+        color,
+      },
+    ])
+    if (error) {
+      console.error("[addNotice] 저장 실패:", error.message, error.details)
+      const dupPkey =
+        error.code === "23505" ||
+        (error.message ?? "").toLowerCase().includes("duplicate key")
+      if (dupPkey) {
+        alert(
+          "저장 실패: id 시퀀스가 테이블과 맞지 않을 수 있습니다.\n\n" +
+            "Supabase SQL Editor에서 아래를 실행한 뒤 다시 시도하세요:\n\n" +
+            "SELECT setval(\n" +
+            "  pg_get_serial_sequence('public.notices','id'),\n" +
+            "  COALESCE((SELECT MAX(id) FROM public.notices), 1)\n" +
+            ");",
+        )
+      } else {
+        alert(`저장 실패: ${error.message}\n→ Supabase notices 테이블·RLS 확인 (supabase-notices.sql 참고)`)
+      }
+      return false
+    }
+    await get().fetchNotices()
+    return true
+  },
+
+  updateNotice: async (
+    noticeId: number,
+    updates: { tag?: string; content?: string; author?: string; color?: string },
+  ) => {
+    const patch: Record<string, string> = {}
+    if (updates.tag !== undefined) patch.tag = updates.tag.trim() || "전체"
+    if (updates.content !== undefined) {
+      const c = updates.content.trim()
+      if (!c) return false
+      patch.content = c
+    }
+    if (updates.author !== undefined) patch.author = updates.author.trim() || "익명"
+    if (updates.color !== undefined) patch.color = updates.color
+    if (Object.keys(patch).length === 0) return false
+
+    const { error } = await supabase.from("notices").update(patch).eq("id", noticeId)
+    if (error) {
+      console.error("[updateNotice] 수정 실패:", error.message)
+      alert(`메모 수정 실패: ${error.message}`)
+      return false
+    }
+    await get().fetchNotices()
+    return true
+  },
+
+  deleteNotice: async (noticeId: number) => {
+    const { error } = await supabase.from("notices").update({ status: "D" }).eq("id", noticeId)
+    if (error) {
+      console.error("[deleteNotice] 삭제 실패:", error.message)
+      alert(`삭제 실패: ${error.message}`)
+      return
+    }
+    await get().fetchNotices()
+  },
+
   // 🔥 서버에 새 링크 저장하기
   addLink: async (category_id: number, title: string, url: string) => {
     const { data: maxRows } = await supabase
@@ -256,8 +371,11 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
     await fetchCategories()
   },
 
-  updateLink: async (linkId: number, updates: { title?: string; url?: string; colorKey?: string | null }) => {
-    const patch: Record<string, string | null> = {}
+  updateLink: async (
+    linkId: number,
+    updates: { title?: string; url?: string; colorKey?: string | null; categoryId?: number },
+  ) => {
+    const patch: Record<string, string | number | null> = {}
     if (updates.title !== undefined) {
       const t = updates.title.trim()
       if (!t) return false
@@ -270,6 +388,21 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
     }
     if (updates.colorKey !== undefined) {
       patch.color_key = updates.colorKey
+    }
+    if (updates.categoryId !== undefined) {
+      patch.category_id = updates.categoryId
+      // 이동한 카테고리 맨 끝에 붙도록 정렬값 재계산
+      const { data: maxRows } = await supabase
+        .from("links")
+        .select("sort_order")
+        .eq("category_id", updates.categoryId)
+        .or("status.is.null,status.neq.D")
+        .order("sort_order", { ascending: false })
+        .limit(1)
+      const maxOrder = maxRows?.[0]
+        ? toSortOrder((maxRows[0] as { sort_order?: unknown }).sort_order)
+        : -1
+      patch.sort_order = maxOrder + 1
     }
     if (Object.keys(patch).length === 0) return false
 

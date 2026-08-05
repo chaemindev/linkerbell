@@ -16,11 +16,19 @@ import {
 } from "@/lib/linkColorPalette"
 import { isValidUrl } from "@/lib/url"
 
+export interface EditLinkDialogCategory {
+  id: number
+  name: string
+}
+
 export interface EditLinkDialogProps {
   linkId: number
   initialTitle: string
   initialUrl: string
   initialColorKey?: string | null
+  /** 전달하면 "카테고리 이동" 선택 UI가 노출됨 */
+  categories?: EditLinkDialogCategory[]
+  initialCategoryId?: number
   open: boolean
   onOpenChange: (open: boolean) => void
   previewVariant?: "our-bell" | "my-bell"
@@ -28,6 +36,7 @@ export interface EditLinkDialogProps {
     title: string
     url: string
     colorKey: string | null
+    categoryId?: number
   }) => Promise<boolean> | boolean
 }
 
@@ -35,6 +44,8 @@ function EditLinkDialogForm({
   initialTitle,
   initialUrl,
   initialColorKey,
+  categories,
+  initialCategoryId,
   onOpenChange,
   onSave,
   previewVariant = "our-bell",
@@ -44,6 +55,7 @@ function EditLinkDialogForm({
   const [colorValue, setColorValue] = useState<LinkColorValue>(
     storedToLinkColorValue(initialColorKey),
   )
+  const [categoryId, setCategoryId] = useState<number | undefined>(initialCategoryId)
 
   const handleSubmit = async () => {
     const t = title.trim()
@@ -64,6 +76,9 @@ function EditLinkDialogForm({
       title: t,
       url: u,
       colorKey: linkColorToStored(colorValue),
+      ...(categories && categoryId !== undefined && categoryId !== initialCategoryId
+        ? { categoryId }
+        : {}),
     })
     if (ok) onOpenChange(false)
   }
@@ -99,6 +114,25 @@ function EditLinkDialogForm({
             onKeyDown={(e) => e.key === "Enter" && void handleSubmit()}
           />
         </div>
+        {categories && categories.length > 0 ? (
+          <div className="grid gap-2">
+            <label htmlFor="edit-link-category" className="text-sm font-semibold text-slate-700">
+              카테고리
+            </label>
+            <select
+              id="edit-link-category"
+              className="h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              value={categoryId ?? ""}
+              onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : undefined)}
+            >
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
         <LinkColorPicker
           value={colorValue}
           onChange={setColorValue}
@@ -125,6 +159,8 @@ export function EditLinkDialog({
   initialTitle,
   initialUrl,
   initialColorKey = null,
+  categories,
+  initialCategoryId,
   open,
   onOpenChange,
   previewVariant = "our-bell",
@@ -139,6 +175,8 @@ export function EditLinkDialog({
             initialTitle={initialTitle}
             initialUrl={initialUrl}
             initialColorKey={initialColorKey}
+            categories={categories}
+            initialCategoryId={initialCategoryId}
             onOpenChange={onOpenChange}
             onSave={onSave}
             previewVariant={previewVariant}

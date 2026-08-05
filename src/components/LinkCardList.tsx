@@ -222,6 +222,7 @@ export function LinkCardList({
   const [editingLink, setEditingLink] = useState<LinkCardListItem | null>(null)
   const [menuOpenLinkId, setMenuOpenLinkId] = useState<number | null>(null)
   const updateLink = useLinkStore((state) => state.updateLink)
+  const allCategories = useLinkStore((state) => state.categories)
 
   const dragEnabled = Boolean(onReorderLinks && items.length > 1)
   const sortableIds = items.map((l) => `link-${l.id}`)
@@ -276,6 +277,8 @@ export function LinkCardList({
         initialTitle={editingLink?.title ?? ""}
         initialUrl={editingLink?.url ?? ""}
         initialColorKey={editingLink?.color_key ?? null}
+        categories={allCategories}
+        initialCategoryId={categoryId}
         open={editingLink !== null}
         previewVariant="our-bell"
         onOpenChange={(next) => {

@@ -23,6 +23,7 @@ import { linkDropAnimation, nestedSortableCollisionDetection } from "@/lib/dndSo
 import { SortableCategoryCard } from "@/components/SortableCategoryCard"
 import { AddFeaturedLink } from "@/components/AddFeaturedLink"
 import { FeaturedLinksRow } from "@/components/FeaturedLinksRow"
+import { NoticeBoardCard } from "@/components/NoticeBoardCard"
 import { PageTitle } from "./PageTitle"
 import { useLinkStore } from "@/store/useLinkStore"
 
@@ -49,6 +50,7 @@ export function Container() {
   const featuredLinks = useLinkStore((state) => state.featuredLinks)
   const fetchCategories = useLinkStore((state) => state.fetchCategories)
   const fetchFeaturedLinks = useLinkStore((state) => state.fetchFeaturedLinks)
+  const fetchNotices = useLinkStore((state) => state.fetchNotices)
   const addFeaturedLink = useLinkStore((state) => state.addFeaturedLink)
   const deleteFeaturedLink = useLinkStore((state) => state.deleteFeaturedLink)
   const addLink = useLinkStore((state) => state.addLink)
@@ -64,8 +66,8 @@ export function Container() {
   const [addFeaturedOpen, setAddFeaturedOpen] = useState(false)
 
   useEffect(() => {
-    void Promise.all([fetchCategories(), fetchFeaturedLinks()])
-  }, [fetchCategories, fetchFeaturedLinks])
+    void Promise.all([fetchCategories(), fetchFeaturedLinks(), fetchNotices()])
+  }, [fetchCategories, fetchFeaturedLinks, fetchNotices])
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -174,6 +176,7 @@ export function Container() {
 
   const grid = (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+      <NoticeBoardCard />
       {categories.map((category, index) => (
         <SortableCategoryCard
           key={category.id}

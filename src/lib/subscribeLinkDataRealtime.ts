@@ -15,9 +15,9 @@ function createDebouncer(run: () => void) {
 }
 
 /**
- * `categories` / `links` / `featuredlinks` 변경 시 목록을 다시 불러옵니다.
+ * `categories` / `links` / `featuredlinks` / `notices` 변경 시 목록을 다시 불러옵니다.
  * Supabase Dashboard → Database → Replication 에서 위 테이블 Realtime을 켜거나
- * `supabase-realtime.sql` 을 실행해야 동작합니다.
+ * `supabase-realtime.sql` / `supabase-notices.sql` 을 실행해야 동작합니다.
  */
 export function subscribeLinkDataRealtime(): () => void {
   const scheduleCategories = createDebouncer(() => {
@@ -25,6 +25,9 @@ export function subscribeLinkDataRealtime(): () => void {
   })
   const scheduleFeatured = createDebouncer(() => {
     void useLinkStore.getState().fetchFeaturedLinks()
+  })
+  const scheduleNotices = createDebouncer(() => {
+    void useLinkStore.getState().fetchNotices()
   })
 
   const channel = supabase
@@ -43,6 +46,11 @@ export function subscribeLinkDataRealtime(): () => void {
       "postgres_changes",
       { event: "*", schema: "public", table: "featuredlinks" },
       scheduleFeatured,
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "notices" },
+      scheduleNotices,
     )
     .subscribe((status, err) => {
       if (status === "SUBSCRIBED") return
