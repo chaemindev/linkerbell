@@ -140,7 +140,7 @@ export function FeaturedLinksRow({
                   type="button"
                   aria-label={`${item.title} 스포트라이트 링크 삭제`}
                   className={cn(
-                    "focus-visible:ring-ring absolute -top-0.5 -right-0.5 z-[60] flex size-4 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-slate-600 shadow-sm transition-[opacity,background-color,color,border-color] duration-200",
+                    "focus-visible:ring-ring absolute -top-0.5 -right-0.5 z-10 flex size-4 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 text-slate-600 shadow-sm transition-[opacity,background-color,color,border-color] duration-200",
                     "hover:border-red-200/90 hover:bg-red-50 hover:text-red-600",
                     "opacity-0 group-hover/item:opacity-100 pointer-coarse:opacity-100",
                     "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
