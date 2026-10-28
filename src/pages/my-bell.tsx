@@ -127,7 +127,7 @@ export default function MyBell() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-[#FAF5F7]">
+    <div className="flex h-screen flex-col">
       <MyBellTopBar />
 
       <div className="flex flex-1 overflow-hidden">

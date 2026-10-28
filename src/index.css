@@ -2,6 +2,125 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "pretendard/dist/web/variable/pretendardvariable.css";
+
+@font-face {
+  font-family: "Jua";
+  src: url("/fonts/Jua-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.birthday-background {
+  animation: birthday-background-appear 1.5s ease-out both;
+}
+
+.ssg-party-hat {
+  background: repeating-linear-gradient(
+    105deg,
+    #fb7185 0 3px,
+    #fde68a 3px 6px,
+    #7dd3fc 6px 9px
+  );
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.birthday-letter {
+  text-shadow:
+    0 1.5px 0 #fff,
+    1.5px 0 0 #fff,
+    -1.5px 0 0 #fff,
+    0 -1.5px 0 #fff,
+    1px 1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px -1px 0 #fff,
+    -1px -1px 0 #fff;
+}
+
+.birthday-flame {
+  position: absolute;
+  left: 50%;
+  width: 11px;
+  height: 15px;
+  margin-left: -5.5px;
+  border-radius: 50% 50% 46% 46% / 62% 62% 38% 38%;
+  background: radial-gradient(ellipse at 50% 78%, #fff 0 16%, #fef08a 34%, #fbbf24 62%, #f97316 100%);
+  filter: drop-shadow(0 0 4px rgba(251, 146, 60, 0.85));
+  transform-origin: center bottom;
+  animation: birthday-flame-flicker 0.85s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.birthday-flame::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  width: 8px;
+  height: 4px;
+  margin-left: -4px;
+  border-radius: 2px 2px 40% 40%;
+  background: currentColor;
+}
+
+.birthday-flame::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  width: 1.5px;
+  height: 4px;
+  margin-left: -0.75px;
+  border-radius: 1px;
+  background: #9a3412;
+}
+
+@keyframes birthday-flame-flicker {
+  from { transform: scale(0.88) rotate(-7deg); }
+  to { transform: scale(1.08) rotate(7deg); }
+}
+
+.birthday-balloon {
+  animation: birthday-balloon-bob 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes birthday-balloon-bob {
+  from { transform: translateY(0); }
+  to { transform: translateY(-3px); }
+}
+
+.birthday-background-piece {
+  opacity: 0.24;
+  animation: birthday-background-fall 20s linear infinite;
+}
+
+@keyframes birthday-background-appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes birthday-background-fall {
+  from { transform: translate3d(0, -30px, 0) rotate(0deg); }
+  to { transform: translate3d(var(--confetti-drift), calc(100dvh + 60px), 0) rotate(540deg); }
+}
+
+@media (max-width: 639px) {
+  .birthday-background-piece:nth-child(n + 19) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .birthday-background, .birthday-background-piece { animation: none; }
+  .birthday-flame, .birthday-balloon { animation: none; }
+}
+
+@font-face {
+  font-family: "Nanum Gothic";
+  src: url("/fonts/NanumGothic-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 @custom-variant dark (&:is(.dark *));
 

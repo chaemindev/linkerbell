@@ -8,7 +8,7 @@ export default function Main() {
   useEffect(() => subscribeLinkDataRealtime(), [])
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF5F7]">
+    <div className="flex min-h-screen flex-col">
       <Header />
       <div className="flex flex-1 flex-col">
         <Container />
