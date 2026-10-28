@@ -51,12 +51,7 @@ function NoticeItem({ id, tag, content, author, color, createdAt }: NoticeItemPr
       >
         {tag}
       </span>
-      <p
-        className="mt-2 whitespace-pre-line text-sm leading-relaxed"
-        style={{ color: style.textColor }}
-      >
-        {content}
-      </p>
+      <p className="min-w-0 overflow-hidden mt-2 whitespace-pre-line break-words text-sm leading-relaxed" style={{ color: style.textColor }}>{content}</p>
       <div className="mt-2 flex items-center justify-between gap-2">
         <span className="min-w-0 truncate text-xs" style={{ color: style.mutedColor }}>
           {author} · {toRelativeTimeKo(createdAt)}
