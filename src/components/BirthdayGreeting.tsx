@@ -6,8 +6,8 @@ export function BirthdayGreeting({ names }: { names: string[] }) {
   const [open, setOpen] = useState(true)
 
   useEffect(() => {
-    // const timer = window.setTimeout(() => setOpen(false), 8000)
-    // return () => window.clearTimeout(timer)
+    const timer = window.setTimeout(() => setOpen(false), 8000)
+    return () => window.clearTimeout(timer)
   }, [])
 
   return (
