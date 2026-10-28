@@ -10,6 +10,7 @@ import {
 import { NoticeFormDialog } from "@/components/NoticeFormDialog"
 import { resolveNoticeColor } from "@/lib/noticeColors"
 import { toRelativeTimeKo } from "@/lib/relativeTime"
+import { splitHttpLinks } from "@/lib/url"
 import { cn } from "@/lib/utils"
 import { useLinkStore } from "@/store/useLinkStore"
 
@@ -51,7 +52,26 @@ function NoticeItem({ id, tag, content, author, color, createdAt }: NoticeItemPr
       >
         {tag}
       </span>
-      <p className="min-w-0 overflow-hidden mt-2 whitespace-pre-line break-words text-sm leading-relaxed" style={{ color: style.textColor }}>{content}</p>
+      <p
+        className="mt-2 min-w-0 overflow-hidden whitespace-pre-line break-words text-sm leading-relaxed"
+        style={{ color: style.textColor }}
+      >
+        {splitHttpLinks(content).map((part, index) =>
+          part.type === "link" ? (
+            <a
+              key={index}
+              href={part.value}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="break-all underline decoration-current/40 underline-offset-2 hover:decoration-current"
+            >
+              {part.value}
+            </a>
+          ) : (
+            <span key={index}>{part.value}</span>
+          ),
+        )}
+      </p>
       <div className="mt-2 flex items-center justify-between gap-2">
         <span className="min-w-0 truncate text-xs" style={{ color: style.mutedColor }}>
           {author} · {toRelativeTimeKo(createdAt)}
