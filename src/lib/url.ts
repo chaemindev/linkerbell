@@ -42,6 +42,45 @@ function isSafeHttpUrl(raw: string): boolean {
   }
 }
 
+const LONG_URL_LENGTH = 40
+
+function decodeUrlPart(value: string): string {
+  try {
+    return decodeURIComponent(value.replace(/\+/g, "%20"))
+  } catch {
+    return value
+  }
+}
+
+function readableUrlPiece(value: string): string | null {
+  const text = decodeUrlPart(value).trim()
+  if (!text || text.length > 32 || /^\d+$/.test(text)) return null
+  if (!/[a-zA-Z가-힣]/.test(text)) return null
+  return text
+}
+
+/** 긴 주소는 화면용 짧은 이름으로 바꾼다. 짧은 주소는 프로토콜만 뺀다. */
+export function linkDisplayLabel(href: string): string {
+  const bare = href.replace(/^https?:\/\//, "")
+  if (href.length <= LONG_URL_LENGTH) return bare
+
+  try {
+    const url = new URL(href)
+    const hash = readableUrlPiece(url.hash.replace(/^#/, ""))
+    if (hash) return hash
+
+    const segments = url.pathname.split("/").filter(Boolean)
+    for (let i = segments.length - 1; i >= 0; i--) {
+      const piece = readableUrlPiece(segments[i])
+      if (piece) return piece
+    }
+
+    return url.hostname.replace(/^www\./, "")
+  } catch {
+    return bare
+  }
+}
+
 /** 공지 본문에서 http(s) 주소만 링크로 분리한다. 끝의 문장부호는 주소에서 뺀다. */
 export function splitHttpLinks(text: string): NoticeTextPart[] {
   const parts: NoticeTextPart[] = []

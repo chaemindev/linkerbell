@@ -61,11 +61,12 @@ function NoticeItem({ id, tag, content, author, color, createdAt }: NoticeItemPr
             <a
               key={index}
               href={part.value}
+              title={part.value}
               target="_blank"
               rel="noopener noreferrer"
               className="break-all underline decoration-current/40 underline-offset-2 hover:decoration-current"
             >
-              {part.value}
+             🔗 링크 이동하기 
             </a>
           ) : (
             <span key={index}>{part.value}</span>
