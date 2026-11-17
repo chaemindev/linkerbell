@@ -161,7 +161,7 @@ export function WeatherWidget() {
           <span className="text-[10px] text-stone-400">{locationLabel} · 한국 시간</span>
         </div>
         {upcoming.length ? (
-          <ul aria-label="앞으로의 시간별 날씨" className="grid grid-cols-3 gap-x-1 gap-y-4 min-[380px]:grid-cols-6">
+          <ul aria-label="앞으로의 시간별 날씨" className="grid grid-cols-3 gap-x-1 gap-y-4 min-[380px]:grid-cols-5">
             {upcoming.map((hour) => {
               const outlook = describeWeather(hour.code, hour.day)
               const tomorrow = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit" }).format(new Date(hour.time)) !== new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit" }).format(now)
