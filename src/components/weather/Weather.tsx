@@ -1,3 +1,4 @@
+import { readWeatherResponse } from "@/lib/weatherResponse"
 import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from "react"
 
 type Weather = { temperature: number; code: number; day: boolean; fetchedAt: number }
@@ -74,10 +75,7 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
         try {
           const params = new URLSearchParams({ latitude, longitude })
           const response = await fetch(`/api/weather?${params}`, { signal: requestController.signal })
-          const payload = await response.json()
-          if (!response.ok) throw new Error(typeof payload?.error === "string" ? payload.error : "기상청 날씨 조회에 실패했어요. 자동으로 다시 시도해요.")
-          const { current } = payload
-          if (!Number.isFinite(current?.temperature_2m) || !Number.isInteger(current?.weather_code) || ![0, 1].includes(current?.is_day)) throw new Error("날씨 서버 응답을 확인하지 못했어요. 자동으로 다시 시도해요.")
+          const current = await readWeatherResponse(response)
           if (disposed) return
           latest = { temperature: current.temperature_2m, code: current.weather_code, day: current.is_day === 1, fetchedAt: Date.now(), locationKey }
           setWeather(latest)
