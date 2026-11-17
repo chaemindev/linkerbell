@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { BirthdayConfetti } from "@/components/BirthdayConfetti"
 import { BirthdayGreeting } from "@/components/BirthdayGreeting"
 import { BirthdayBackground } from "@/components/BirthdayBackground"
-import { getSeoulDateKey, hasBirthdayOn } from "@/lib/birthday"
+import { getSeoulDateKey, showsBirthdayEvent } from "@/lib/birthday"
 import { supabase } from "@/lib/supabase"
 import { useBirthdayStore } from "@/store/useBirthdayStore"
 
@@ -13,11 +13,11 @@ export function BirthdayCelebration() {
     let disposed = false
     let requestId = 0
     let lastDate = getSeoulDateKey()
-    let rows: { name: string; birthday: string; status: string | null }[] = []
+    let rows: { id: number; name: string; birthday: string; status: string | null }[] = []
 
     const updateCelebration = () => {
       lastDate = getSeoulDateKey()
-      const names = rows.filter((row) => hasBirthdayOn([row], lastDate)).map((row) => row.name)
+      const names = rows.filter((row) => showsBirthdayEvent(row, lastDate)).map((row) => row.name)
       useBirthdayStore.getState().setBirthdayToday(names.length > 0)
       setCelebration(names.length > 0 ? { date: lastDate, names } : null)
     }
@@ -26,7 +26,7 @@ export function BirthdayCelebration() {
       const id = ++requestId
       const { data, error } = await supabase
         .from("birthdays")
-        .select("name, birthday, status")
+        .select("id, name, birthday, status")
         .or("status.is.null,status.neq.D")
       if (disposed || id !== requestId) return
       if (error) {

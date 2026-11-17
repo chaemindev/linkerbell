@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { WeatherWidget } from "@/components/weather/Weather"
 import { Search } from "lucide-react"
 import FairyLogo from "@/components/common/FairyLogo"
 import { BellNavButton } from "@/components/common/BellNavButton"
@@ -121,7 +122,7 @@ export default function Header({ myBellActive = false }: HeaderProps) {
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="group flex cursor-pointer items-center gap-2.5">
             <FairyLogo />
-            <div className="-space-y-0.6 flex flex-col justify-center">
+            <div className="-space-y-0.6 flex flex-col justify-center max-[400px]:hidden">
               <h1 className="text-[17px] font-semibold tracking-wide text-foreground">
                 LinkerBell
               </h1>
@@ -134,7 +135,8 @@ export default function Header({ myBellActive = false }: HeaderProps) {
           <BellNavButton myBellActive={myBellActive} />
         </div>
 
-        <div ref={containerRef} className="relative shrink-0">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+        <div ref={containerRef} className="header-search relative shrink-0">
           {/* overflow-hidden은 펼침 클립용으로만 한 줄에 적용. 여기 두면 드롭다운이 잘려 검색이 안 되는 것처럼 보임 */}
           <div
             className={cn(
@@ -144,7 +146,7 @@ export default function Header({ myBellActive = false }: HeaderProps) {
                 : "max-w-10 border-transparent bg-transparent shadow-none",
             )}
           >
-            <div className="flex h-10 w-[min(100%,18rem)] max-w-[calc(100vw-2rem)] sm:w-80">
+            <div className="flex h-10 w-[min(18rem,calc(100vw-9rem))] max-w-[calc(100vw-9rem)] sm:w-80">
               <button
                 type="button"
                 className="text-muted-foreground hover:text-pink-400/85 dark:hover:text-pink-300/75 flex h-10 w-10 shrink-0 items-center justify-center transition-colors duration-200 ease-out group-focus-within:text-pink-400/75 focus-visible:outline-none dark:group-focus-within:text-pink-300/65"
@@ -222,6 +224,8 @@ export default function Header({ myBellActive = false }: HeaderProps) {
               )}
             </div>
           ) : null}
+        </div>
+        <WeatherWidget />
         </div>
       </div>
     </header>

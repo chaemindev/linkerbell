@@ -31,7 +31,7 @@ const fairyBalloons = [
 export function PageTitle() {
   const isBirthdayToday = useBirthdayStore((state) => state.isBirthdayToday)
   return (
-<div className="flex flex-col items-center justify-center gap-8 mb-5 border-b border-slate-100 group">
+<div className="weather-page-title flex flex-col items-center justify-center gap-8 mb-5 border-b border-slate-100 group">
   
   {/* [상단]: 텍스트 섹션 (모두 가운데 정렬) */}
   <div className="flex flex-col items-center space-y-2 relative">
@@ -106,7 +106,7 @@ export function PageTitle() {
       </div>
     </h2>
     <div className="flex items-center gap-3">
-      <span className="text-[9px] font-medium text-slate-400/80 tracking-[0.3em] uppercase">
+      <span className="weather-page-subtitle text-[9px] font-medium text-slate-400/80 tracking-[0.3em] uppercase">
        Web Dev Team  LINK ARCHIVE
       </span>
     </div>
