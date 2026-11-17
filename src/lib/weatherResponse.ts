@@ -1,6 +1,10 @@
+export type HourlyForecast = {
+  time: string; temperature: number; code: number; day: boolean
+  precipitationProbability: number | null; precipitation: string | null
+}
 type CurrentWeather = { temperature_2m: number; weather_code: number; is_day: 0 | 1 }
 
-export async function readWeatherResponse(response: Response): Promise<CurrentWeather> {
+export async function readWeatherResponse(response: Response): Promise<{ current: CurrentWeather; hourly: HourlyForecast[] }> {
   // Hosting platforms may return plain text or HTML when a function fails to start.
   const text = await response.text()
   let payload
@@ -14,5 +18,13 @@ export async function readWeatherResponse(response: Response): Promise<CurrentWe
   if (!Number.isFinite(current?.temperature_2m) || !Number.isInteger(current?.weather_code) || ![0, 1].includes(current?.is_day)) {
     throw new Error("날씨 서버 응답을 확인하지 못했어요. 자동으로 다시 시도해요.")
   }
-  return current
+  const hourly: HourlyForecast[] = Array.isArray(payload.hourly) ? payload.hourly.filter((item: HourlyForecast) =>
+    item && typeof item.time === "string" && Number.isFinite(Date.parse(item.time)) &&
+    Number.isFinite(item.temperature) && Number.isInteger(item.code) && typeof item.day === "boolean"
+  ).slice(0, 6).map((item: HourlyForecast) => ({
+    time: item.time, temperature: item.temperature, code: item.code, day: item.day,
+    precipitationProbability: Number.isFinite(item.precipitationProbability) && item.precipitationProbability! >= 0 && item.precipitationProbability! <= 100 ? item.precipitationProbability : null,
+    precipitation: typeof item.precipitation === "string" ? item.precipitation : null,
+  })) : []
+  return { current, hourly }
 }

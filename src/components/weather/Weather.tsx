@@ -1,13 +1,13 @@
-import { readWeatherResponse } from "@/lib/weatherResponse"
-import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from "react"
+import { readWeatherResponse, type HourlyForecast } from "@/lib/weatherResponse"
+import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
 
-type Weather = { temperature: number; code: number; day: boolean; fetchedAt: number }
+type Weather = { temperature: number; code: number; day: boolean; fetchedAt: number; hourly: HourlyForecast[] }
 const INTERVAL = 20 * 60 * 1000
 
 function describeWeather(code: number, day: boolean) {
   if ([71, 73, 75, 77, 85, 86].includes(code)) return { icon: "☃️", label: "눈", effect: "snow" }
   if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(code))
-    return { icon: code >= 95 ? "⛈️" : "🌧️", label: code >= 95 ? "뇌우" : "비", effect: "rain" }
+    return { icon: code >= 95 ? "⛈️" : "☔️", label: code >= 95 ? "뇌우" : "비", effect: "rain" }
   if ([45, 48].includes(code)) return { icon: "🌫️", label: "안개", effect: null }
   if (code === 0) return { icon: day ? "☀️" : "🌙", label: "맑음", effect: null }
   if (code === 1) return { icon: day ? "🌤️" : "☁️", label: "구름 조금", effect: null }
@@ -28,7 +28,7 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get("weather") === "rain") {
       setLocationLabel("비 테스트")
-      setWeather({ temperature: 15, code: 61, day: true, fetchedAt: Date.now() })
+      setWeather({ temperature: 15, code: 61, day: true, hourly: [], fetchedAt: Date.now() })
       setError(null)
       return
     }
@@ -75,9 +75,9 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
         try {
           const params = new URLSearchParams({ latitude, longitude })
           const response = await fetch(`/api/weather?${params}`, { signal: requestController.signal })
-          const current = await readWeatherResponse(response)
+          const { current, hourly } = await readWeatherResponse(response)
           if (disposed) return
-          latest = { temperature: current.temperature_2m, code: current.weather_code, day: current.is_day === 1, fetchedAt: Date.now(), locationKey }
+          latest = { temperature: current.temperature_2m, code: current.weather_code, day: current.is_day === 1, fetchedAt: Date.now(), hourly, locationKey }
           setWeather(latest)
           setError(null)
           failures = 0
@@ -127,7 +127,18 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
 }
 
 export function WeatherWidget() {
+  const detailsRef = useRef<HTMLDetailsElement>(null)
   const { locationLabel, weather, error, retry } = useContext(WeatherContext)
+  useEffect(() => {
+    const closeOutside = (event: PointerEvent) => {
+      const details = detailsRef.current
+      if (details?.open && event.target instanceof Node && !details.contains(event.target)) {
+        details.open = false
+      }
+    }
+    document.addEventListener("pointerdown", closeOutside, true)
+    return () => document.removeEventListener("pointerdown", closeOutside, true)
+  }, [])
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30000)
@@ -136,19 +147,40 @@ export function WeatherWidget() {
   const date = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric" }).format(now).replace(/\.$/, "")
   const weekday = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", weekday: "long" }).format(now)
   const info = weather ? describeWeather(weather.code, weather.day) : null
+  const upcoming = (weather?.hourly ?? []).filter((hour) => Date.parse(hour.time) > now.getTime())
   return (
-    <details className="weather-widget relative shrink-0 border-l border-pink-100 pl-1 sm:pl-3">
+    <details ref={detailsRef} className="weather-widget relative shrink-0 border-l border-pink-100 pl-1 sm:pl-3">
       <summary className="flex cursor-pointer list-none items-center gap-0.5 rounded-xl px-2 py-2 text-xs text-stone-500 outline-none transition-colors hover:bg-pink-50 focus-visible:ring-2 focus-visible:ring-pink-200 sm:gap-3" aria-label={`${date} ${weekday}, ${locationLabel} ${info?.label ?? "날씨"} ${weather ? `${Math.round(weather.temperature)}도` : error ? "조회 실패" : "불러오는 중"}. 날씨 상세 열기`}>
         <span className="flex flex-col gap-0.5"><span className="font-medium tracking-wide">{date}<span className="ml-1 hidden sm:inline">{weekday}</span></span><span className="text-[10px] text-stone-400">{locationLabel}</span></span>
         <span aria-hidden="true" className="text-xl">{info?.icon ?? "☁️"}</span>
         <span className="min-w-6 font-medium tabular-nums">{weather ? `${Math.round(weather.temperature)}°` : "—"}</span>
       </summary>
-      <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-56 rounded-2xl border border-pink-100 bg-white p-4 shadow-lg">
-        <p className="mb-3 text-sm font-medium text-stone-600">오늘의 하늘 {info?.icon ?? "☁️"}</p>
-
-        <p className="mt-3 text-xs text-stone-500" role="status">{weather ? `${info?.label} · ${Math.round(weather.temperature)}°C` : error ?? `${locationLabel} 날씨를 불러오고 있어요…`}</p>
+      <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-pink-100 bg-white p-4 shadow-lg">
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-stone-700">시간별 예보</p>
+          <span className="text-[10px] text-stone-400">{locationLabel} · 한국 시간</span>
+        </div>
+        {upcoming.length ? (
+          <ul aria-label="앞으로의 시간별 날씨" className="grid grid-cols-3 gap-x-1 gap-y-4 min-[380px]:grid-cols-6">
+            {upcoming.map((hour) => {
+              const outlook = describeWeather(hour.code, hour.day)
+              const tomorrow = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit" }).format(new Date(hour.time)) !== new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit" }).format(now)
+              return <li key={hour.time} className="flex min-w-0 flex-col items-center gap-1.5 text-center">
+                <time dateTime={hour.time} className="text-[11px] font-medium text-stone-500">{tomorrow ? "내일 " : ""}{Number(hour.time.slice(11, 13))}시</time>
+                <span role="img" aria-label={outlook.label} className="text-2xl leading-8">{outlook.icon}</span>
+                <span className="text-sm font-semibold tabular-nums text-stone-700">{Math.round(hour.temperature)}°</span>
+                <span className="text-[10px] text-stone-400">{outlook.label}</span>
+                <span className="text-[10px] font-medium tabular-nums text-sky-600" title="강수확률">{hour.precipitationProbability === null ? "—" : `${hour.precipitationProbability}%`}</span>
+                <span className="text-[9px] text-stone-400" title="1시간 강수량">{hour.precipitation === "강수없음" ? "0mm" : hour.precipitation ?? "—"}</span>
+              </li>
+            })}
+          </ul>
+        ) : <p className="py-4 text-center text-xs leading-5 text-stone-500" role="status">{error ?? (weather ? "시간별 예보를 준비하고 있어요." : `${locationLabel} 예보를 불러오고 있어요…`)}</p>}
         {error && <button type="button" onClick={retry} className="mt-3 rounded-lg bg-pink-50 px-3 py-1.5 text-xs text-stone-600 hover:bg-pink-100 focus-visible:outline-pink-300">다시 시도</button>}
-        <a href="https://www.kma.go.kr/" target="_blank" rel="noreferrer" className="mt-2 text-[10px] text-stone-400 underline hidden">날씨 정보 제공: 기상청</a>
+        <div className="mt-4 flex items-center justify-between border-t border-stone-100 pt-3 text-[9px] text-stone-400 hidden">
+          <span>강수확률 · 1시간 강수량</span>
+          <a href="https://www.kma.go.kr/" target="_blank" rel="noreferrer" className="underline underline-offset-2">기상청 제공</a>
+        </div>
       </div>
     </details>
   )

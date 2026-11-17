@@ -8,8 +8,13 @@ const pending = new Map<string, Promise<WeatherResponse>>()
 type Item = { category: string; obsrValue?: string; fcstValue?: string; baseDate: string; baseTime: string; fcstDate?: string; fcstTime?: string }
 type WeatherResponse = {
   current: { temperature_2m: number; weather_code: number; is_day: number }
+  hourly: HourlyForecast[]
   source: "기상청"
   observedAt: string
+}
+type HourlyForecast = {
+  time: string; temperature: number; code: number; day: boolean
+  precipitationProbability: number | null; precipitation: string | null
 }
 class WeatherError extends Error {
   status: number
@@ -85,6 +90,33 @@ function apiError(code?: string) {
   return new WeatherError("기상청 최신 자료를 불러오지 못했어요. 자동으로 다시 시도해요.", 503, code === "03")
 }
 
+export function hourlyForecast(items: Item[], now: number): HourlyForecast[] {
+  const groups = new Map<string, Map<string, string>>()
+  for (const item of items) {
+    if (!/^\d{8}$/.test(item.fcstDate ?? "") || !/^\d{4}$/.test(item.fcstTime ?? "") || item.fcstValue == null) continue
+    const key = `${item.fcstDate}${item.fcstTime}`
+    if (!groups.has(key)) groups.set(key, new Map())
+    groups.get(key)!.set(item.category, item.fcstValue)
+  }
+  const result: HourlyForecast[] = []
+  for (const [key, values] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {
+    const time = `${key.slice(0, 4)}-${key.slice(4, 6)}-${key.slice(6, 8)}T${key.slice(8, 10)}:${key.slice(10, 12)}:00+09:00`
+    if (!Number.isFinite(Date.parse(time)) || Date.parse(time) <= now) continue
+    if (!["T1H", "PTY", "SKY"].every((field) => values.has(field) && values.get(field)!.trim() !== "")) continue
+    const temperature = Number(values.get("T1H")), pty = Number(values.get("PTY")), sky = Number(values.get("SKY"))
+    if (!Number.isFinite(temperature) || temperature < -80 || temperature > 60) continue
+    let code: number
+    try { code = weatherCode(pty, sky) } catch { continue }
+    const probability = values.has("POP") && values.get("POP")!.trim() !== "" ? Number(values.get("POP")) : NaN
+    const rain = values.get("RN1")?.trim()
+    const hour = Number(key.slice(8, 10))
+    result.push({ time, temperature, code, day: hour >= 6 && hour < 18,
+      precipitationProbability: Number.isFinite(probability) && probability >= 0 && probability <= 100 ? probability : null,
+      precipitation: rain && rain !== "-999" ? rain : null })
+  }
+  return result.slice(0, 6)
+}
+
 async function loadWeather(nx: number, ny: number, key: string, now: number): Promise<WeatherResponse> {
   const [observed, forecast] = await Promise.all([requestItems(false, nx, ny, key, now), requestItems(true, nx, ny, key, now)])
   const temperature = observed.find((item) => item.category === "T1H")
@@ -97,7 +129,7 @@ async function loadWeather(nx: number, ny: number, key: string, now: number): Pr
   const degrees = Number(temperature.obsrValue), pty = Number(precipitation.obsrValue), skyValue = Number(sky.fcstValue)
   if (!Number.isFinite(degrees) || degrees < -80 || degrees > 60 || !Number.isInteger(pty)) throw new WeatherError("기상청 날씨 값을 확인하지 못했어요.")
   const hour = new Date(now + 9 * 3600000).getUTCHours()
-  return { current: { temperature_2m: degrees, weather_code: weatherCode(pty, skyValue), is_day: hour >= 6 && hour < 18 ? 1 : 0 }, source: "기상청", observedAt: `${temperature.baseDate}${temperature.baseTime}` }
+  return { current: { temperature_2m: degrees, weather_code: weatherCode(pty, skyValue), is_day: hour >= 6 && hour < 18 ? 1 : 0 }, hourly: hourlyForecast(forecast, now), source: "기상청", observedAt: `${temperature.baseDate}${temperature.baseTime}` }
 }
 
 export async function handleWeatherRequest(request: IncomingMessage, response: ServerResponse, serviceKey = process.env.KMA_SERVICE_KEY) {
