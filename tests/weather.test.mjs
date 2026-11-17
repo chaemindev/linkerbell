@@ -28,7 +28,7 @@ test('KMA grid conversion and midnight publication dates', async () => {
   assert.deepEqual(toGrid(37.5665, 126.978), { nx: 60, ny: 127 })
   assert.deepEqual(toGrid(35.1796, 129.0756), { nx: 98, ny: 76 })
   const midnight = Date.parse('2026-11-16T15:05:00Z')
-  assert.deepEqual(baseTime(midnight, false), { base_date: '20261116', base_time: '2300' })
+  assert.deepEqual(baseTime(midnight, false), { base_date: '20261116', base_time: '2350' })
   assert.deepEqual(baseTime(midnight, true), { base_date: '20261116', base_time: '2330' })
 })
 
@@ -194,7 +194,7 @@ test('plain text hosting failures do not leak a JSON SyntaxError into the UI', a
 
 test('client accepts valid weather and preserves safe API errors', async () => {
   const current = { temperature_2m: 14, weather_code: 2, is_day: 1 }
-  assert.deepEqual(await readWeatherResponse(Response.json({ current })), { current, hourly: [] })
+  assert.deepEqual(await readWeatherResponse(Response.json({ current })), { current, hourly: [], observedAt: null })
   await assert.rejects(readWeatherResponse(Response.json({ error: '서버에 기상청 인증키 설정이 필요해요.' }, { status: 503 })), /인증키/)
   await assert.rejects(readWeatherResponse(Response.json({ current: { temperature_2m: null } })), /응답/)
   await assert.rejects(readWeatherResponse(new Response('<html>App shell</html>')), /응답 형식/)
@@ -238,4 +238,28 @@ test('hourly forecast includes at most six hours and API returns it alongside cu
   assert.equal(res.data.hourly[3].code, 61)
   const parsed = await readWeatherResponse(Response.json(res.data))
   assert.deepEqual(parsed.hourly, res.data.hourly)
+})
+
+test('uses latest ten-minute precipitation instead of an obsolete hourly observation', async (t) => {
+  const { handleWeatherRequest, baseTime } = await load()
+  const at = Date.parse('2026-11-17T06:48:00Z') // 15:48 KST
+  t.mock.method(Date, 'now', () => at)
+  assert.deepEqual(baseTime(at, false), { base_date: '20261117', base_time: '1530' })
+  assert.deepEqual(baseTime(at, false, 1), { base_date: '20261117', base_time: '1520' })
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    const query = new URL(url)
+    if (!query.pathname.endsWith('getUltraSrtNcst')) return json(forecast)
+    const slot = query.searchParams.get('base_time')
+    return json([
+      { category: 'T1H', obsrValue: '14.5', baseDate: '20261117', baseTime: slot },
+      { category: 'PTY', obsrValue: slot === '1500' ? '0' : '1', baseDate: '20261117', baseTime: slot },
+    ])
+  })
+  const res = response()
+  await handleWeatherRequest(request, res, 'test-key')
+  assert.equal(res.statusCode, 200)
+  assert.equal(res.data.current.weather_code, 61)
+  assert.equal(res.data.observedAt, '202611171530')
+  assert.equal(res.headers['Cache-Control'], 'no-store')
+  assert.equal((await readWeatherResponse(Response.json(res.data))).observedAt, '202611171530')
 })

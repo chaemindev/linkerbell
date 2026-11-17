@@ -4,7 +4,7 @@ export type HourlyForecast = {
 }
 type CurrentWeather = { temperature_2m: number; weather_code: number; is_day: 0 | 1 }
 
-export async function readWeatherResponse(response: Response): Promise<{ current: CurrentWeather; hourly: HourlyForecast[] }> {
+export async function readWeatherResponse(response: Response): Promise<{ current: CurrentWeather; hourly: HourlyForecast[]; observedAt: string | null }> {
   // Hosting platforms may return plain text or HTML when a function fails to start.
   const text = await response.text()
   let payload
@@ -26,5 +26,6 @@ export async function readWeatherResponse(response: Response): Promise<{ current
     precipitationProbability: Number.isFinite(item.precipitationProbability) && item.precipitationProbability! >= 0 && item.precipitationProbability! <= 100 ? item.precipitationProbability : null,
     precipitation: typeof item.precipitation === "string" ? item.precipitation : null,
   })) : []
-  return { current, hourly }
+  const observedAt = typeof payload.observedAt === "string" && /^\d{12}$/.test(payload.observedAt) ? payload.observedAt : null
+  return { current, hourly, observedAt }
 }

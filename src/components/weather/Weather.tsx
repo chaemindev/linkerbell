@@ -1,8 +1,8 @@
 import { readWeatherResponse, type HourlyForecast } from "@/lib/weatherResponse"
 import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
 
-type Weather = { temperature: number; code: number; day: boolean; fetchedAt: number; hourly: HourlyForecast[] }
-const INTERVAL = 20 * 60 * 1000
+type Weather = { temperature: number; code: number; day: boolean; fetchedAt: number; hourly: HourlyForecast[]; observedAt: string | null }
+const INTERVAL = 2 * 60 * 1000
 
 function describeWeather(code: number, day: boolean) {
   if ([71, 73, 75, 77, 85, 86].includes(code)) return { icon: "☃️", label: "눈", effect: "snow" }
@@ -28,7 +28,7 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get("weather") === "rain") {
       setLocationLabel("비 테스트")
-      setWeather({ temperature: 15, code: 61, day: true, hourly: [], fetchedAt: Date.now() })
+      setWeather({ temperature: 15, code: 61, day: true, hourly: [], observedAt: null, fetchedAt: Date.now() })
       setError(null)
       return
     }
@@ -66,7 +66,7 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
         setLocationLabel(position ? "현재 위치" : "서울")
         const locationKey = `${latitude},${longitude}`
         if (latest && latest.locationKey === locationKey && Date.now() - latest.fetchedAt < INTERVAL) return
-        setWeather(null)
+        if (latest?.locationKey !== locationKey) setWeather(null)
         setError(null)
         const requestController = new AbortController()
         const cancel = () => requestController.abort()
@@ -74,10 +74,10 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
         const timeout = window.setTimeout(cancel, 15000)
         try {
           const params = new URLSearchParams({ latitude, longitude })
-          const response = await fetch(`/api/weather?${params}`, { signal: requestController.signal })
-          const { current, hourly } = await readWeatherResponse(response)
+          const response = await fetch(`/api/weather?${params}`, { signal: requestController.signal, cache: "no-store" })
+          const { current, hourly, observedAt } = await readWeatherResponse(response)
           if (disposed) return
-          latest = { temperature: current.temperature_2m, code: current.weather_code, day: current.is_day === 1, fetchedAt: Date.now(), hourly, locationKey }
+          latest = { temperature: current.temperature_2m, code: current.weather_code, day: current.is_day === 1, fetchedAt: Date.now(), hourly, observedAt, locationKey }
           setWeather(latest)
           setError(null)
           failures = 0
@@ -178,7 +178,8 @@ export function WeatherWidget() {
         ) : <p className="py-4 text-center text-xs leading-5 text-stone-500" role="status">{error ?? (weather ? "시간별 예보를 준비하고 있어요." : `${locationLabel} 예보를 불러오고 있어요…`)}</p>}
         {error && <button type="button" onClick={retry} className="mt-3 rounded-lg bg-pink-50 px-3 py-1.5 text-xs text-stone-600 hover:bg-pink-100 focus-visible:outline-pink-300">다시 시도</button>}
         <div className="mt-4 flex items-center justify-between border-t border-stone-100 pt-3 text-[9px] text-stone-400 hidden">
-          <span>강수확률 · 1시간 강수량</span>
+          <span>{weather?.observedAt ? `${weather.observedAt.slice(8, 10)}:${weather.observedAt.slice(10, 12)} 관측 · ` : ""}2분마다 갱신</span>
+          <button type="button" onClick={retry} className="text-stone-500 hover:text-pink-500 focus-visible:outline-pink-300">새로고침</button>
           <a href="https://www.kma.go.kr/" target="_blank" rel="noreferrer" className="underline underline-offset-2">기상청 제공</a>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
 
 const BASE_URL = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0"
-const CACHE_TTL = 10 * 60 * 1000
+const CACHE_TTL = 2 * 60 * 1000
 const cache = new Map<string, { expires: number; data: WeatherResponse }>()
 const pending = new Map<string, Promise<WeatherResponse>>()
 
@@ -39,12 +39,12 @@ export function toGrid(latitude: number, longitude: number) {
   return { nx: Math.floor(ra * Math.sin(theta) + 43 + .5), ny: Math.floor(ro - ra * Math.cos(theta) + 136 + .5) }
 }
 
-export function baseTime(now: number, forecast: boolean, hoursBack = 0) {
+export function baseTime(now: number, forecast: boolean, periodsBack = 0) {
   // Leave time for publication; UTC methods operate on a KST-shifted date.
-  const date = new Date(now + 9 * 3600000 - (forecast ? 45 : 15) * 60000 - hoursBack * 3600000)
+  const date = new Date(now + 9 * 3600000 - (forecast ? 45 : 10) * 60000 - periodsBack * (forecast ? 60 : 10) * 60000)
   return {
     base_date: date.toISOString().slice(0, 10).replaceAll("-", ""),
-    base_time: `${String(date.getUTCHours()).padStart(2, "0")}${forecast ? "30" : "00"}`,
+    base_time: `${String(date.getUTCHours()).padStart(2, "0")}${forecast ? "30" : String(Math.floor(date.getUTCMinutes() / 10) * 10).padStart(2, "0")}`,
   }
 }
 
@@ -136,7 +136,7 @@ export async function handleWeatherRequest(request: IncomingMessage, response: S
   const send = (status: number, data: unknown) => {
     response.statusCode = status
     response.setHeader("Content-Type", "application/json; charset=utf-8")
-    response.setHeader("Cache-Control", status === 200 ? "private, max-age=300" : "no-store")
+    response.setHeader("Cache-Control", "no-store")
     response.end(JSON.stringify(data))
   }
   if (request.method !== "GET") { response.setHeader("Allow", "GET"); send(405, { error: "허용되지 않는 요청입니다." }); return }

@@ -80,7 +80,7 @@ export default defineConfig([
 
 Weather requests use the server endpoint `/api/weather?latitude=37.5665&longitude=126.9780`.
 The server converts coordinates to the KMA grid, combines current observations with the
-nearest sky forecast, and caches successful results by grid for 10 minutes.
+nearest sky forecast, and caches successful results by grid for 2 minutes.
 
 - Copy `KMA_SERVICE_KEY` from `.env.example` into `.env.local` and provide your public-data-portal service key. Never use a `VITE_` prefix for this key.
 - Local development and `pnpm preview` serve the endpoint through the Vite server middleware.
