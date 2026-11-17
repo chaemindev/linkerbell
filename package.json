@@ -9,7 +9,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "init-tw": "tailwindcss init -p"
+    "init-tw": "tailwindcss init -p",
+    "test:weather": "node --test tests/weather.test.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

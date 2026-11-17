@@ -74,3 +74,18 @@ export default defineConfig([
 # linkring
 # linkring
 # linkring
+
+
+## Weather API (기상청)
+
+Weather requests use the server endpoint `/api/weather?latitude=37.5665&longitude=126.9780`.
+The server converts coordinates to the KMA grid, combines current observations with the
+nearest sky forecast, and caches successful results by grid for 10 minutes.
+
+- Copy `KMA_SERVICE_KEY` from `.env.example` into `.env.local` and provide your public-data-portal service key. Never use a `VITE_` prefix for this key.
+- Local development and `pnpm preview` serve the endpoint through the Vite server middleware.
+- On Vercel, add `KMA_SERVICE_KEY` to the project's server environment variables and redeploy. The endpoint runs in `api/weather.ts`; `.env.local` is not committed or uploaded as configuration.
+- Run `pnpm test:weather` for the grid, publication-time, response mapping, cache, and error-handling checks.
+- The development-only `?weather=rain` URL displays sample rain data. Open `/` to use real KMA data.
+
+Data source: [기상청 단기예보 조회서비스](https://www.data.go.kr/data/15084084/openapi.do).

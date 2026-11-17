@@ -9,7 +9,8 @@ function describeWeather(code: number, day: boolean) {
     return { icon: code >= 95 ? "⛈️" : "🌧️", label: code >= 95 ? "뇌우" : "비", effect: "rain" }
   if ([45, 48].includes(code)) return { icon: "🌫️", label: "안개", effect: null }
   if (code === 0) return { icon: day ? "☀️" : "🌙", label: "맑음", effect: null }
-  if (code === 1 || code === 2) return { icon: day ? "🌤️" : "☁️", label: "구름 조금", effect: null }
+  if (code === 1) return { icon: day ? "🌤️" : "☁️", label: "구름 조금", effect: null }
+  if (code === 2) return { icon: day ? "⛅" : "☁️", label: "구름 많음", effect: null }
   return { icon: "☁️", label: "흐림", effect: null }
 }
 
@@ -34,17 +35,27 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
     let latest: (Weather & { locationKey: string }) | null = null
     let pending = false
     let disposed = false
+    let retryTimer: number | undefined
+    let failures = 0
+    let locationTimer: number | undefined
     const refresh = async () => {
       if (pending || document.hidden) return
+      window.clearTimeout(retryTimer)
       pending = true
       try {
         const position = navigator.geolocation
           ? await new Promise<GeolocationPosition | null>((resolve) => {
+              const settle = (position: GeolocationPosition | null) => {
+                window.clearTimeout(locationTimer)
+                resolve(position)
+              }
+              // Browser permission prompts can outlive the geolocation timeout.
+              locationTimer = window.setTimeout(() => settle(null), 10000)
               try {
-                navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), {
+                navigator.geolocation.getCurrentPosition(settle, () => settle(null), {
                   enableHighAccuracy: false, timeout: 10000, maximumAge: 60000,
                 })
-              } catch { resolve(null) }
+              } catch { settle(null) }
             })
           : null
         if (disposed) return
@@ -59,19 +70,32 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
         const requestController = new AbortController()
         const cancel = () => requestController.abort()
         controller.signal.addEventListener("abort", cancel, { once: true })
-        const timeout = window.setTimeout(cancel, 12000)
+        const timeout = window.setTimeout(cancel, 15000)
         try {
-          const params = new URLSearchParams({ latitude, longitude, current: "temperature_2m,weather_code,is_day", timezone: "auto" })
-          const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, { signal: requestController.signal })
-          if (!response.ok) throw new Error("Weather unavailable")
-          const { current } = await response.json()
-          if (!Number.isFinite(current?.temperature_2m) || !Number.isInteger(current?.weather_code) || ![0, 1].includes(current?.is_day)) throw new Error("Invalid weather")
+          const params = new URLSearchParams({ latitude, longitude })
+          const response = await fetch(`/api/weather?${params}`, { signal: requestController.signal })
+          const payload = await response.json()
+          if (!response.ok) throw new Error(typeof payload?.error === "string" ? payload.error : "기상청 날씨 조회에 실패했어요. 자동으로 다시 시도해요.")
+          const { current } = payload
+          if (!Number.isFinite(current?.temperature_2m) || !Number.isInteger(current?.weather_code) || ![0, 1].includes(current?.is_day)) throw new Error("날씨 서버 응답을 확인하지 못했어요. 자동으로 다시 시도해요.")
           if (disposed) return
           latest = { temperature: current.temperature_2m, code: current.weather_code, day: current.is_day === 1, fetchedAt: Date.now(), locationKey }
           setWeather(latest)
           setError(null)
-        } catch {
-          if (!disposed) { setWeather(null); setError("날씨를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.") }
+          failures = 0
+        } catch (reason) {
+          if (!disposed) {
+            setWeather(null)
+            setError(!navigator.onLine
+              ? "인터넷 연결을 확인해 주세요. 연결되면 다시 조회해요."
+              : requestController.signal.aborted
+                ? "날씨 서버 응답이 늦어지고 있어요. 자동으로 다시 시도해요."
+                : reason instanceof TypeError
+                  ? "날씨 서버에 연결할 수 없어요. 자동으로 다시 시도해요."
+                  : reason instanceof Error ? reason.message : "날씨 조회에 실패했어요. 자동으로 다시 시도해요.")
+            failures += 1
+            retryTimer = window.setTimeout(() => { void refresh() }, Math.min(10000 * 2 ** Math.min(failures - 1, 4), 120000))
+          }
         } finally {
           window.clearTimeout(timeout)
           controller.signal.removeEventListener("abort", cancel)
@@ -89,7 +113,16 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
     const timer = window.setInterval(() => { void refresh() }, INTERVAL)
     const onVisible = () => { void refresh() }
     document.addEventListener("visibilitychange", onVisible)
-    return () => { disposed = true; controller.abort(); window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible) }
+    window.addEventListener("online", onVisible)
+    return () => {
+      disposed = true
+      controller.abort()
+      window.clearInterval(timer)
+      window.clearTimeout(retryTimer)
+      window.clearTimeout(locationTimer)
+      document.removeEventListener("visibilitychange", onVisible)
+      window.removeEventListener("online", onVisible)
+    }
   }, [attempt])
 
   return <WeatherContext.Provider value={{ locationLabel, weather, error, retry: () => setAttempt((value) => value + 1) }}>{children}</WeatherContext.Provider>
@@ -117,7 +150,7 @@ export function WeatherWidget() {
 
         <p className="mt-3 text-xs text-stone-500" role="status">{weather ? `${info?.label} · ${Math.round(weather.temperature)}°C` : error ?? `${locationLabel} 날씨를 불러오고 있어요…`}</p>
         {error && <button type="button" onClick={retry} className="mt-3 rounded-lg bg-pink-50 px-3 py-1.5 text-xs text-stone-600 hover:bg-pink-100 focus-visible:outline-pink-300">다시 시도</button>}
-        <p className="mt-2 text-[10px] text-stone-400">20분마다 갱신 · 한국 시간 기준</p>
+        <a href="https://www.kma.go.kr/" target="_blank" rel="noreferrer" className="mt-2 text-[10px] text-stone-400 underline hidden">날씨 정보 제공: 기상청</a>
       </div>
     </details>
   )
