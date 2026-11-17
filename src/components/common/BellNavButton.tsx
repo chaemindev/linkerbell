@@ -13,6 +13,7 @@ export function BellNavButton({ myBellActive = false, className }: Props) {
 
   return (
     <Button
+      asChild
       variant="outline"
       size="sm"
       className={cn(
@@ -30,8 +31,15 @@ export function BellNavButton({ myBellActive = false, className }: Props) {
         className,
       )}
       aria-label={myBellActive ? "팀 링크 페이지로 이동" : "개인화 페이지로 이동"}
-      onClick={() => navigate(target)}
     >
+      <a
+        href={target}
+        onClick={(event) => {
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+          event.preventDefault()
+          navigate(target)
+        }}
+      >
       <span
         className={cn("inline-block text-sm leading-none", !myBellActive && "-scale-x-100")}
         aria-hidden
@@ -39,6 +47,7 @@ export function BellNavButton({ myBellActive = false, className }: Props) {
         {myBellActive ? "🧚" : "🌙"}
       </span>
       <span className="hidden sm:inline">{myBellActive ? "우리벨" : "마이벨"}</span>
+      </a>
     </Button>
   )
 }

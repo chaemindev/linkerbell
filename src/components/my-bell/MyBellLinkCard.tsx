@@ -1,6 +1,6 @@
 import { MousePointer2 } from "lucide-react"
 import { getMyBellLinkCardAppearance } from "@/lib/linkColorPalette"
-import { openLinkInNewTab } from "@/lib/url"
+import { normalizeLinkHref } from "@/lib/url"
 import { useMyBellStore } from "@/store/useMyBellStore"
 import { cn } from "@/lib/utils"
 
@@ -32,13 +32,16 @@ export function MyBellLinkCard({
 }: Props) {
   const recordClick = useMyBellStore((s) => s.recordClick)
 
-  const isHot = clickCount >= 30
   const domain = getDomain(url)
+  const isHot = clickCount >= 30
   const appearance = getMyBellLinkCardAppearance(colorKey, { dragOverlay })
 
   return (
-    <button
-      type="button"
+    <a
+      href={normalizeLinkHref(url) ?? undefined}
+      title={normalizeLinkHref(url) ?? url}
+      target="_blank"
+      rel="noopener noreferrer"
       className={cn(
         "group flex w-full items-center gap-3 rounded-xl border px-5 py-2 text-left transition-all duration-200",
         appearance.className,
@@ -51,7 +54,6 @@ export function MyBellLinkCard({
       }}
       onClick={() => {
         recordClick(id)
-        openLinkInNewTab(url)
       }}
     >
       <div className="min-w-0 flex-1">
@@ -71,6 +73,6 @@ export function MyBellLinkCard({
           </span>
         </div>
       </div>
-    </button>
+    </a>
   )
 }

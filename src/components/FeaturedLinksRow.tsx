@@ -1,6 +1,6 @@
 import { Plus, X } from "lucide-react"
 import { faviconPublicUrl } from "@/lib/faviconUrl"
-import { openLinkInNewTab } from "@/lib/url"
+import { normalizeLinkHref } from "@/lib/url"
 import { cn } from "@/lib/utils"
 
 /** title+url 기준으로 고정 — 매 렌더마다 바뀌는 진짜 랜덤은 피함 */
@@ -97,13 +97,15 @@ export function FeaturedLinksRow({
             className="group/item flex w-16 shrink-0 flex-col items-center gap-1.5 touch-manipulation sm:w-[4.5rem]"
           >
             <div className="relative">
-              <button
-                type="button"
+              <a
+                href={normalizeLinkHref(item.url) ?? undefined}
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => {
                   onBeforeOpenLink?.(item)
-                  openLinkInNewTab(item.url)
                 }}
-                title={item.title}
+                title={normalizeLinkHref(item.url) ?? item.url}
+                aria-label={`${item.title}, 새 탭에서 열기`}
                 className={cn(
                   "focus-visible:ring-ring flex size-11 shrink-0 items-center justify-center rounded-full border p-0 text-sm font-medium shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-[border-color,background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:size-12",
                   bgClass,
@@ -134,7 +136,7 @@ export function FeaturedLinksRow({
                     {titleInitial(item.title)}
                   </span>
                 )}
-              </button>
+              </a>
               {canDelete ? (
                 <button
                   type="button"

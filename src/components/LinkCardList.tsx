@@ -17,7 +17,7 @@ import {
   normalizeLinkColorKey,
   type LinkColorKey,
 } from "@/lib/linkColorPalette"
-import { openLinkInNewTab } from "@/lib/url"
+import { normalizeLinkHref } from "@/lib/url"
 import { cn } from "@/lib/utils"
 import { useLinkStore } from "@/store/useLinkStore"
 
@@ -122,12 +122,14 @@ export function LinkRowContent({
       {...sortableDrag?.attributes}
       {...sortableDrag?.listeners}
     >
-      <button
-        type="button"
+      <a
+        href={normalizeLinkHref(link.url) ?? undefined}
+        title={normalizeLinkHref(link.url) ?? link.url}
+        target="_blank"
+        rel="noopener noreferrer"
         className="flex min-h-0 min-w-0 flex-1 cursor-pointer select-none items-center gap-3 overflow-hidden border-0 bg-transparent text-left [-webkit-touch-callout:none] [touch-callout:none] touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40 focus-visible:ring-offset-2"
         onClick={() => {
           useLinkStore.getState().recordLinkClick(link.id)
-          openLinkInNewTab(link.url)
         }}
         aria-label={`${link.title}, 새 탭에서 열기`}
       >
@@ -145,7 +147,7 @@ export function LinkRowContent({
         >
           {link.title}
         </span>
-      </button>
+      </a>
       <div
         className="shrink-0 touch-manipulation"
         onPointerDown={(e) => e.stopPropagation()}

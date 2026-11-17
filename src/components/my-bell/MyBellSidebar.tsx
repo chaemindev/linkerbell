@@ -70,6 +70,7 @@ function CategoryTreeItem({ cat, index }: { cat: Category; index: number }) {
               <li key={link.id}>
                 <a
                   href={link.url}
+                  title={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block truncate rounded px-2 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
@@ -241,6 +242,7 @@ export function MyBellSidebar({ categories, recentLinks, onAddCategory }: Props)
                 <li key={link.id}>
                   <a
                     href={link.url}
+                  title={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex gap-2.5 rounded-lg px-2 py-2 transition-colors hover:bg-slate-50"

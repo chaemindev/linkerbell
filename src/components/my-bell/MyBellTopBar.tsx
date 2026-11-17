@@ -3,7 +3,7 @@ import { Search } from "lucide-react"
 import FairyLogo from "@/components/common/FairyLogo"
 import { BellNavButton } from "@/components/common/BellNavButton"
 import { useMyBellStore } from "@/store/useMyBellStore"
-import { openLinkInNewTab } from "@/lib/url"
+import { normalizeLinkHref } from "@/lib/url"
 import { cn } from "@/lib/utils"
 
 type SearchGroup = {
@@ -164,19 +164,21 @@ export function MyBellTopBar() {
                     <ul className="pb-2">
                       {group.links.map((link) => (
                         <li key={`${group.categoryId}-${link.id}`} role="option">
-                          <button
-                            type="button"
+                          <a
+                            href={normalizeLinkHref(link.url) ?? undefined}
+                            title={normalizeLinkHref(link.url) ?? link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="hover:bg-accent focus:bg-accent flex w-full px-3 py-2.5 text-left text-sm text-foreground outline-none"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => {
                               recordClick(link.id)
-                              openLinkInNewTab(link.url)
                               setSearchExpanded(false)
                               setQuery("")
                             }}
                           >
                             <span className="line-clamp-2">{link.title}</span>
-                          </button>
+                          </a>
                         </li>
                       ))}
                     </ul>
