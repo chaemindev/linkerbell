@@ -24,6 +24,10 @@ import { SortableCategoryCard } from "@/components/SortableCategoryCard"
 import { AddFeaturedLink } from "@/components/AddFeaturedLink"
 import { FeaturedLinksRow } from "@/components/FeaturedLinksRow"
 import { NoticeBoardCard } from "@/components/NoticeBoardCard"
+import { TeamLinkSearch } from "@/components/TeamLinkSearch"
+import { TeamCategoryTree } from "@/components/TeamCategoryTree"
+import { Footer } from "@/components/Footer"
+import { WeatherWidget } from "@/components/weather/Weather"
 import { PageTitle } from "./PageTitle"
 import { useLinkStore } from "@/store/useLinkStore"
 
@@ -193,7 +197,16 @@ export function Container() {
   )
 
   return (
-    <main className="mx-auto max-w-[1800px] flex-1 px-6 py-12 xl:px-10">
+    <div className="flex w-full flex-1 flex-col md:flex-row">
+      <aside aria-label="우리벨 사이드 영역" className="w-full shrink-0 border-b bg-white/90 p-4 md:w-75 md:border-b-0 md:border-r">
+        <div className="mb-4">
+          <WeatherWidget sidebar />
+        </div>
+        <TeamLinkSearch />
+        <TeamCategoryTree />
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+      <main className="min-w-0 flex-1 px-6 py-12 xl:px-10">
       <PageTitle />
       <FeaturedLinksRow
         links={
@@ -261,6 +274,9 @@ export function Container() {
           </DragOverlay>
         </DndContext>
       )}
-    </main>
+      </main>
+      <Footer />
+      </div>
+    </div>
   )
 }

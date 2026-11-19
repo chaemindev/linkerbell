@@ -126,7 +126,7 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
   return <WeatherContext.Provider value={{ locationLabel, weather, error, retry: () => setAttempt((value) => value + 1) }}>{children}</WeatherContext.Provider>
 }
 
-export function WeatherWidget() {
+export function WeatherWidget({ sidebar = false }: { sidebar?: boolean }) {
   const detailsRef = useRef<HTMLDetailsElement>(null)
   const { locationLabel, weather, error, retry } = useContext(WeatherContext)
   useEffect(() => {
@@ -149,13 +149,16 @@ export function WeatherWidget() {
   const info = weather ? describeWeather(weather.code, weather.day) : null
   const upcoming = (weather?.hourly ?? []).filter((hour) => Date.parse(hour.time) > now.getTime())
   return (
-    <details ref={detailsRef} className="weather-widget relative shrink-0 border-l border-pink-100 pl-1 sm:pl-3">
-      <summary className="flex cursor-pointer list-none items-center gap-0.5 rounded-xl px-2 py-2 text-xs text-stone-500 outline-none transition-colors hover:bg-pink-50 focus-visible:ring-2 focus-visible:ring-pink-200 sm:gap-3" aria-label={`${date} ${weekday}, ${locationLabel} ${info?.label ?? "날씨"} ${weather ? `${Math.round(weather.temperature)}도` : error ? "조회 실패" : "불러오는 중"}. 날씨 상세 열기`}>
-        <span className="flex flex-col gap-0.5"><span className="font-medium tracking-wide">{date}<span className="ml-1 hidden sm:inline">{weekday}</span></span><span className="text-[10px] text-stone-400">{locationLabel}</span></span>
+    <details ref={detailsRef} className={`weather-widget relative shrink-0 ${sidebar ? "w-full" : ""}`}>
+      <summary className={sidebar
+        ? "flex w-full cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-2 rounded-xl bg-pink-50 p-2.5 text-xs text-stone-500 outline-none focus-visible:ring-2 focus-visible:ring-pink-200"
+        : "flex cursor-pointer list-none items-center gap-0.5 rounded-xl px-3 py-3 text-xs text-stone-500 outline-none transition-colors bg-pink-50 focus-visible:ring-2 focus-visible:ring-pink-200 sm:gap-3"} aria-label={`${date} ${weekday}, ${locationLabel} ${info?.label ?? "날씨"} ${weather ? `${Math.round(weather.temperature)}도` : error ? "조회 실패" : "불러오는 중"}. 날씨 상세 열기`}>
+        <span className={sidebar ? "flex w-full flex-row items-center justify-between gap-2" : "flex flex-col gap-0.5"}><span className="font-medium tracking-wide">☘️ {date}<span className={sidebar ? "ml-1" : "ml-1 hidden sm:inline"}>{weekday}</span></span><span className="text-[10px] text-stone-400">{locationLabel}</span></span>
         <span aria-hidden="true" className="text-xl">{info?.icon ?? "☁️"}</span>
-        <span className="min-w-6 font-medium tabular-nums">{weather ? `${Math.round(weather.temperature)}°` : "—"}</span>
+        {sidebar && <span className="min-w-0 flex-1 font-medium text-stone-600">{info?.label ?? (error ? "조회 실패" : "불러오는 중")}</span>}
+        <span className={sidebar ? "text-lg font-semibold tabular-nums text-stone-700" : "min-w-6 font-medium tabular-nums"}>{weather ? `${Math.round(weather.temperature)}°` : "—"}</span>
       </summary>
-      <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-pink-100 bg-white p-4 shadow-lg">
+      <div className="absolute left-0 top-[calc(100%+0.75rem)] z-50 w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-pink-100 bg-white p-4 shadow-lg">
         <div className="mb-4 flex items-center justify-between gap-2">
           <p className="text-sm font-semibold text-stone-700">시간별 예보</p>
           <span className="text-[10px] text-stone-400">{locationLabel} · 한국 시간</span>

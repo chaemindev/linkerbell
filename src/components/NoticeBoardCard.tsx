@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Pencil, Pin, Plus } from "lucide-react"
+import { Pencil, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -8,11 +8,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { NoticeFormDialog } from "@/components/NoticeFormDialog"
+import { NoticeComments } from "@/components/NoticeComments"
 import { resolveNoticeColor } from "@/lib/noticeColors"
 import { toRelativeTimeKo } from "@/lib/relativeTime"
 import { splitHttpLinks } from "@/lib/url"
 import { cn } from "@/lib/utils"
 import { useLinkStore } from "@/store/useLinkStore"
+
+const NOTICE_PAGE_SIZE = 3
 
 interface NoticeItemProps {
   id: number
@@ -40,12 +43,6 @@ function NoticeItem({ id, tag, content, author, color, createdAt }: NoticeItemPr
       className={cn("group relative rounded-2xl p-4", style.bordered && "border border-slate-200")}
       style={style.bordered ? undefined : { backgroundColor: style.bg }}
     >
-      <Pin
-        className="absolute -right-1.5 -top-2 h-5 w-5 rotate-45 text-red-500"
-        fill="currentColor"
-        strokeWidth={1}
-        aria-hidden
-      />
       <span
         className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide"
         style={{ backgroundColor: style.tagBg, color: style.tagColor }}
@@ -53,8 +50,7 @@ function NoticeItem({ id, tag, content, author, color, createdAt }: NoticeItemPr
         {tag}
       </span>
       <p
-        className="mt-2 min-w-0 overflow-hidden whitespace-pre-line break-words text-sm leading-relaxed"
-        style={{ color: style.textColor }}
+        className="mt-2 min-w-0 overflow-hidden whitespace-pre-line break-words rounded-xl bg-white px-3 py-2 text-sm leading-relaxed text-slate-800"
       >
         {splitHttpLinks(content).map((part, index) =>
           part.type === "link" ? (
@@ -102,6 +98,7 @@ function NoticeItem({ id, tag, content, author, color, createdAt }: NoticeItemPr
         </DropdownMenu>
       </div>
 
+      <NoticeComments noticeId={id} />
       <NoticeFormDialog
         open={editOpen}
         onOpenChange={setEditOpen}
@@ -120,15 +117,13 @@ export function NoticeBoardCard() {
   const notices = useLinkStore((s) => s.notices)
   const addNotice = useLinkStore((s) => s.addNotice)
   const [addOpen, setAddOpen] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(NOTICE_PAGE_SIZE)
 
   return (
     <div className="flex flex-col gap-5 rounded-3xl bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.03),0_20px_40px_-20px_rgba(15,23,42,0.14)]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-base" aria-hidden>
-            📌
-          </span>
-          <h3 className="text-sm font-black text-slate-900">팀 공지 메모</h3>
+          <h3 className="text-sm font-black text-slate-900">🧸 팀 공지 메모</h3>
         </div>
         <Button
           variant="ghost"
@@ -142,18 +137,21 @@ export function NoticeBoardCard() {
       </div>
 
       <div className="flex flex-col gap-3">
-        {notices.map((n) => (
+        {notices.slice(0, visibleCount).map((n) => (
           <NoticeItem key={n.id} {...n} />
         ))}
 
-        <button
-          type="button"
-          className="flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-slate-200 text-sm text-slate-400 transition-colors hover:border-slate-300 hover:text-slate-600"
-          onClick={() => setAddOpen(true)}
-        >
-          <Plus className="h-3.5 w-3.5" />
-          새 메모 작성
-        </button>
+        {notices.length > NOTICE_PAGE_SIZE && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full rounded-2xl"
+            disabled={visibleCount >= notices.length}
+            onClick={() => setVisibleCount((count) => count + NOTICE_PAGE_SIZE)}
+          >
+            더보기
+          </Button>
+        )}
       </div>
 
       <NoticeFormDialog

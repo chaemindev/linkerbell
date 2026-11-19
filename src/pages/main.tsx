@@ -1,7 +1,6 @@
 import { useEffect } from "react"
 import Header from "@/components/Header"
 import { Container } from "@/components/Container"
-import { Footer } from "@/components/Footer"
 import { subscribeLinkDataRealtime } from "@/lib/subscribeLinkDataRealtime"
 
 export default function Main() {
@@ -12,7 +11,6 @@ export default function Main() {
       <Header />
       <div className="flex flex-1 flex-col">
         <Container />
-        <Footer />
       </div>
     </div>
   )

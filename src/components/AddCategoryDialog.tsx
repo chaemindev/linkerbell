@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type ReactElement } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -15,7 +15,7 @@ import { useLinkStore } from "@/store/useLinkStore"
 
 const EXPAND_EASE = "duration-500 ease-out" as const
 
-export function AddCategoryDialog() {
+export function AddCategoryDialog({ trigger }: { trigger?: ReactElement } = {}) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const addCategory = useLinkStore((state) => state.addCategory)
@@ -36,7 +36,7 @@ export function AddCategoryDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button
+        {trigger ?? <Button
           type="button"
           variant="outline"
           aria-expanded={open}
@@ -78,7 +78,7 @@ export function AddCategoryDialog() {
           >
             Add New Category
           </span>
-        </Button>
+        </Button>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
