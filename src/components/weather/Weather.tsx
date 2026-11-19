@@ -4,6 +4,28 @@ import { createContext, useContext, useEffect, useRef, useState, type CSSPropert
 type Weather = { temperature: number; code: number; day: boolean; fetchedAt: number; hourly: HourlyForecast[]; observedAt: string | null }
 const INTERVAL = 2 * 60 * 1000
 
+const WEATHER_REGIONS = [
+  { name: "서울", latitude: "37.5665", longitude: "126.9780" },
+  { name: "부산", latitude: "35.1796", longitude: "129.0756" },
+  { name: "대구", latitude: "35.8714", longitude: "128.6014" },
+  { name: "인천", latitude: "37.4563", longitude: "126.7052" },
+  { name: "광주", latitude: "35.1595", longitude: "126.8526" },
+  { name: "대전", latitude: "36.3504", longitude: "127.3845" },
+  { name: "울산", latitude: "35.5384", longitude: "129.3114" },
+  { name: "세종", latitude: "36.4800", longitude: "127.2890" },
+  { name: "수원", latitude: "37.2636", longitude: "127.0286" },
+  { name: "춘천", latitude: "37.8813", longitude: "127.7298" },
+  { name: "강릉", latitude: "37.7519", longitude: "128.8761" },
+  { name: "청주", latitude: "36.6424", longitude: "127.4890" },
+  { name: "천안", latitude: "36.8151", longitude: "127.1139" },
+  { name: "전주", latitude: "35.8242", longitude: "127.1480" },
+  { name: "목포", latitude: "34.8118", longitude: "126.3922" },
+  { name: "포항", latitude: "36.0190", longitude: "129.3435" },
+  { name: "창원", latitude: "35.2285", longitude: "128.6811" },
+  { name: "제주", latitude: "33.4996", longitude: "126.5312" },
+]
+
+
 function describeWeather(code: number, day: boolean) {
   if ([71, 73, 75, 77, 85, 86].includes(code)) return { icon: "☃️", label: "눈", effect: "snow" }
   if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(code))
@@ -16,10 +38,20 @@ function describeWeather(code: number, day: boolean) {
 }
 
 const WeatherContext = createContext<{
-  locationLabel: string; weather: Weather | null; error: string | null; retry: () => void
-}>({ locationLabel: "현재 위치", weather: null, error: null, retry: () => {} })
+  region: string; setRegion: (region: string) => void; locationLabel: string; weather: Weather | null; error: string | null; retry: () => void
+}>({ region: "", setRegion: () => {}, locationLabel: "현재 위치", weather: null, error: null, retry: () => {} })
 
 export function WeatherProvider({ children }: { children: ReactNode }) {
+  const [region, setRegionState] = useState(() => {
+    try {
+      const saved = localStorage.getItem("weather-region")
+      return WEATHER_REGIONS.some((item) => item.name === saved) ? saved! : ""
+    } catch { return "" }
+  })
+  const setRegion = (value: string) => {
+    setRegionState(value)
+    try { localStorage.setItem("weather-region", value) } catch { /* Keep selection in memory. */ }
+  }
   const [weather, setWeather] = useState<Weather | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [locationLabel, setLocationLabel] = useState("현재 위치")
@@ -44,7 +76,8 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(retryTimer)
       pending = true
       try {
-        const position = navigator.geolocation
+        const selectedRegion = WEATHER_REGIONS.find((item) => item.name === region)
+        const position = !selectedRegion && navigator.geolocation
           ? await new Promise<GeolocationPosition | null>((resolve) => {
               const settle = (position: GeolocationPosition | null) => {
                 window.clearTimeout(locationTimer)
@@ -61,9 +94,9 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
           : null
         if (disposed) return
         // Use approximate coordinates; keep location and weather only in memory.
-        const latitude = position ? position.coords.latitude.toFixed(2) : "37.5665"
-        const longitude = position ? position.coords.longitude.toFixed(2) : "126.9780"
-        setLocationLabel(position ? "현재 위치" : "서울")
+        const latitude = selectedRegion?.latitude ?? (position ? position.coords.latitude.toFixed(2) : "37.5665")
+        const longitude = selectedRegion?.longitude ?? (position ? position.coords.longitude.toFixed(2) : "126.9780")
+        setLocationLabel(selectedRegion?.name ?? (position ? "현재 위치" : "서울"))
         const locationKey = `${latitude},${longitude}`
         if (latest && latest.locationKey === locationKey && Date.now() - latest.fetchedAt < INTERVAL) return
         if (latest?.locationKey !== locationKey) setWeather(null)
@@ -121,14 +154,14 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
       document.removeEventListener("visibilitychange", onVisible)
       window.removeEventListener("online", onVisible)
     }
-  }, [attempt])
+  }, [attempt, region])
 
-  return <WeatherContext.Provider value={{ locationLabel, weather, error, retry: () => setAttempt((value) => value + 1) }}>{children}</WeatherContext.Provider>
+  return <WeatherContext.Provider value={{ region, setRegion, locationLabel, weather, error, retry: () => setAttempt((value) => value + 1) }}>{children}</WeatherContext.Provider>
 }
 
 export function WeatherWidget({ sidebar = false }: { sidebar?: boolean }) {
   const detailsRef = useRef<HTMLDetailsElement>(null)
-  const { locationLabel, weather, error, retry } = useContext(WeatherContext)
+  const { region, setRegion, locationLabel, weather, error, retry } = useContext(WeatherContext)
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
       const details = detailsRef.current
@@ -153,7 +186,18 @@ export function WeatherWidget({ sidebar = false }: { sidebar?: boolean }) {
       <summary className={sidebar
         ? "flex w-full cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-2 rounded-xl bg-pink-50 p-2.5 text-xs text-stone-500 outline-none focus-visible:ring-2 focus-visible:ring-pink-200"
         : "flex cursor-pointer list-none items-center gap-0.5 rounded-xl px-3 py-3 text-xs text-stone-500 outline-none transition-colors bg-pink-50 focus-visible:ring-2 focus-visible:ring-pink-200 sm:gap-3"} aria-label={`${date} ${weekday}, ${locationLabel} ${info?.label ?? "날씨"} ${weather ? `${Math.round(weather.temperature)}도` : error ? "조회 실패" : "불러오는 중"}. 날씨 상세 열기`}>
-        <span className={sidebar ? "flex w-full flex-row items-center justify-between gap-2" : "flex flex-col gap-0.5"}><span className="font-medium tracking-wide">☘️ {date}<span className={sidebar ? "ml-1" : "ml-1 hidden sm:inline"}>{weekday}</span></span><span className="text-[10px] text-stone-400">{locationLabel}</span></span>
+        <span className={sidebar ? "flex w-full flex-row items-center justify-between gap-2" : "flex flex-col gap-0.5"}><span className="font-medium tracking-wide">☘️ {date}<span className={sidebar ? "ml-1" : "ml-1 hidden sm:inline"}>{weekday}</span></span><select
+          aria-label="날씨 지역 설정"
+          value={region}
+          style={{ width: `calc(${(region || locationLabel).length}em + 1.5rem)` }}
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+          onChange={(event) => setRegion(event.target.value)}
+          className="max-w-24 cursor-pointer rounded border-0 bg-transparent text-xs text-stone-600 outline-none focus-visible:ring-2 focus-visible:ring-pink-200"
+        >
+          <option value="">{region ? "현재 위치 (자동)" : locationLabel}</option>
+          {WEATHER_REGIONS.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
+        </select></span>
         <span aria-hidden="true" className="text-xl">{info?.icon ?? "☁️"}</span>
         {sidebar && <span className="min-w-0 flex-1 font-medium text-stone-600">{info?.label ?? (error ? "조회 실패" : "불러오는 중")}</span>}
         <span className={sidebar ? "text-lg font-semibold tabular-nums text-stone-700" : "min-w-6 font-medium tabular-nums"}>{weather ? `${Math.round(weather.temperature)}°` : "—"}</span>
