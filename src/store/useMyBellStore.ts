@@ -25,6 +25,7 @@ interface PersistedData {
 interface MyBellStore extends PersistedData {
   setUserName: (name: string) => void
   addCategory: (name: string) => void
+  copyCategory: (name: string, links: { title: string; url: string; color_key?: string | null }[]) => void
   deleteCategory: (id: number) => void
   renameCategory: (id: number, name: string) => void
   reorderCategories: (orderedIds: number[]) => void
@@ -66,13 +67,34 @@ function save(userName: string, categories: MyBellCategory[], links: MyBellLink[
 
 // Date.now() 밀리초 충돌 방지
 let _seq = 0
-const uniqueId = () => Date.now() * 10000 + (_seq++ % 10000)
+const uniqueId = () => {
+  _seq = Math.max(Date.now() * 1000, _seq + 1)
+  return _seq
+}
 
 // 모듈 로드 시점에 동기적으로 초기 데이터 읽기
 const initial = load()
 
 export const useMyBellStore = create<MyBellStore>()((set) => ({
   ...initial,
+
+  copyCategory: (name, sourceLinks) =>
+    set((s) => {
+      const categoryId = uniqueId()
+      const savedAt = Date.now()
+      const categories = [...s.categories, { id: categoryId, name }]
+      const links = [...s.links, ...sourceLinks.map((link) => ({
+        id: uniqueId(),
+        categoryId,
+        title: link.title,
+        url: link.url,
+        colorKey: link.color_key ?? null,
+        clickCount: 0,
+        savedAt,
+      }))]
+      save(s.userName, categories, links)
+      return { categories, links }
+    }),
 
   setUserName: (name) =>
     set((s) => {

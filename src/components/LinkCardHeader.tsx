@@ -1,6 +1,8 @@
 import { useState } from "react"
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core"
-import { GripVertical, Heart, MoreVertical, Trash2, Edit2 } from "lucide-react"
+import { GripVertical, Heart, MoreVertical, Trash2, Edit2, BookmarkPlus } from "lucide-react"
+import { useLinkStore } from "@/store/useLinkStore"
+import { useMyBellStore } from "@/store/useMyBellStore"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -112,6 +114,18 @@ export function LinkCardHeader({
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span className="text-s">카테고리 삭제</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={() => {
+                const category = useLinkStore.getState().categories.find((item) => item.id === categoryId)
+                if (!category) return
+                useMyBellStore.getState().copyCategory(category.name, category.links)
+                window.alert("마이벨에 카테고리와 링크를 저장했습니다.")
+              }}
+            >
+              <BookmarkPlus className="h-3.5 w-3.5" />
+              <span className="text-s">마이벨에 저장</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
