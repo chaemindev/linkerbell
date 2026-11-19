@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import {
   DndContext,
   DragOverlay,
@@ -68,6 +69,7 @@ export function Container() {
   const [overlayMenuOpen, setOverlayMenuOpen] = useState<number | null>(null)
   const [overlayEditing, setOverlayEditing] = useState<LinkCardListItem | null>(null)
   const [addFeaturedOpen, setAddFeaturedOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     void Promise.all([fetchCategories(), fetchFeaturedLinks(), fetchNotices()])
@@ -198,12 +200,27 @@ export function Container() {
 
   return (
     <div className="flex w-full flex-1 flex-col lg:flex-row">
-      <aside aria-label="우리벨 사이드 영역" className="w-full shrink-0 border-b bg-white/90 p-4 lg:w-75 lg:border-b-0 lg:border-r">
+      <aside aria-label="우리벨 사이드 영역" className={`relative shrink-0 bg-white/90 ${sidebarCollapsed ? "w-0 p-0" : "w-full border-b p-4 lg:w-75 lg:border-b-0 lg:border-r"}`}>
+        <div className={`absolute right-0 top-0 z-20 translate-x-full ${sidebarCollapsed ? "" : "max-lg:right-4 max-lg:translate-x-0"}`}>
+          <button
+            type="button"
+            aria-label={sidebarCollapsed ? "사이드바 펼치기" : "사이드바 접기"}
+            title={sidebarCollapsed ? "사이드바 펼치기" : "사이드바 접기"}
+            aria-expanded={!sidebarCollapsed}
+            aria-controls="team-sidebar-content"
+            onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
+            className="flex h-7 w-5 items-center justify-center border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-slate-400"
+          >
+            {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
+        </div>
+        <div id="team-sidebar-content" hidden={sidebarCollapsed}>
         <div className="mb-4">
           <WeatherWidget sidebar />
         </div>
         <TeamLinkSearch />
         <TeamCategoryTree />
+        </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-10 xl:px-10">

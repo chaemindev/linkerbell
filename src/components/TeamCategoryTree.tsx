@@ -1,4 +1,5 @@
-import { ChevronRight, Heart, Link2, Plus } from "lucide-react"
+import { ChevronRight, Heart, Link2, Plus, ChevronUp, ChevronDown } from "lucide-react"
+import { useRef, useState } from "react"
 import { AddCategoryDialog } from "@/components/AddCategoryDialog"
 import { getCategoryBadge } from "@/lib/categoryBadge"
 import { isCustomLinkColor, normalizeHexColor, normalizeLinkColorKey } from "@/lib/linkColorPalette"
@@ -17,8 +18,16 @@ const LINK_ICON_COLORS = {
 }
 
 export function TeamCategoryTree() {
+  const [allExpanded, setAllExpandedState] = useState(true)
+  const treeRef = useRef<HTMLUListElement>(null)
   const categories = useLinkStore((state) => state.categories)
   const recordLinkClick = useLinkStore((state) => state.recordLinkClick)
+  const setAllExpanded = (expanded: boolean) => {
+    setAllExpandedState(expanded)
+    treeRef.current?.querySelectorAll("details").forEach((details) => {
+      details.open = expanded
+    })
+  }
 
   return (
     <nav aria-label="카테고리별 링크" className="mt-6">
@@ -27,6 +36,17 @@ export function TeamCategoryTree() {
         <Heart aria-hidden="true" className="h-6 w-6 shrink-0 fill-current text-rose-400" strokeWidth={0} />
         카테고리
       </h2>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          aria-label={allExpanded ? "카테고리 전체 접기" : "카테고리 전체 펼치기"}
+          title={allExpanded ? "전체 접기" : "전체 펼치기"}
+          disabled={categories.length === 0}
+          onClick={() => setAllExpanded(!allExpanded)}
+          className="rounded p-0.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
+        >
+          {allExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+        </button>
       <AddCategoryDialog trigger={
         <button
           type="button"
@@ -37,10 +57,14 @@ export function TeamCategoryTree() {
         </button>
       } />
       </div>
-      <ul className="space-y-1">
+      </div>
+      <ul ref={treeRef} className="space-y-1">
         {categories.map((category, index) => (
           <li key={category.id}>
-            <details open className="group/category">
+            <details open className="group/category" onToggle={() => {
+              const items = treeRef.current?.querySelectorAll("details")
+              if (items) setAllExpandedState(Array.from(items).every((item) => item.open))
+            }}>
               <summary className="flex cursor-pointer list-none items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
                 <ChevronRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform group-open/category:rotate-90" />
                 <Heart aria-hidden="true" className={`h-3.5 w-3.5 shrink-0 fill-current ${getCategoryBadge(index).color}`} />
