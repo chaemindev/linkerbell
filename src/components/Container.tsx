@@ -179,7 +179,7 @@ export function Container() {
       : null
 
   const grid = (
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,max(18rem,calc((100%_-_5rem)/5))),1fr))] gap-5 xl:grid-cols-[repeat(auto-fit,minmax(min(100%,max(18rem,calc((100%_-_8rem)/5))),1fr))] xl:gap-8">
       <NoticeBoardCard />
       {categories.map((category, index) => (
         <SortableCategoryCard
@@ -197,8 +197,8 @@ export function Container() {
   )
 
   return (
-    <div className="flex w-full flex-1 flex-col md:flex-row">
-      <aside aria-label="우리벨 사이드 영역" className="w-full shrink-0 border-b bg-white/90 p-4 md:w-75 md:border-b-0 md:border-r">
+    <div className="flex w-full flex-1 flex-col lg:flex-row">
+      <aside aria-label="우리벨 사이드 영역" className="w-full shrink-0 border-b bg-white/90 p-4 lg:w-75 lg:border-b-0 lg:border-r">
         <div className="mb-4">
           <WeatherWidget sidebar />
         </div>
@@ -206,7 +206,7 @@ export function Container() {
         <TeamCategoryTree />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-      <main className="min-w-0 flex-1 px-6 py-12 xl:px-10">
+      <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-10 xl:px-10">
       <PageTitle />
       <FeaturedLinksRow
         links={
