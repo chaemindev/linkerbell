@@ -101,7 +101,7 @@ export function LinkRowContent({
   return (
     <div
       className={cn(
-        "group flex w-full min-w-0 items-center gap-3 rounded-xl px-4 py-3 transition-colors duration-200",
+        "group relative flex w-full min-w-0 items-center gap-3 rounded-xl px-4 py-3 transition-colors duration-200",
         "hover:bg-slate-50",
         sortableDrag && "cursor-grab touch-manipulation active:cursor-grabbing [-webkit-touch-callout:none]",
       )}
@@ -116,7 +116,7 @@ export function LinkRowContent({
         title={normalizeLinkHref(link.url) ?? link.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex min-h-0 min-w-0 flex-1 cursor-pointer select-none items-center gap-3 overflow-hidden border-0 bg-transparent text-left [-webkit-touch-callout:none] [touch-callout:none] touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40 focus-visible:ring-offset-2"
+        className="after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] flex min-h-0 min-w-0 flex-1 cursor-pointer select-none items-center gap-3 overflow-hidden border-0 bg-transparent text-left [-webkit-touch-callout:none] [touch-callout:none] touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40 focus-visible:ring-offset-2"
         onClick={() => {
           useLinkStore.getState().recordLinkClick(link.id)
         }}
@@ -137,7 +137,7 @@ export function LinkRowContent({
         </span>
       </a>
       <div
-        className="shrink-0 touch-manipulation"
+        className="relative z-10 shrink-0 touch-manipulation"
         onPointerDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
       >
