@@ -108,7 +108,7 @@ export function NoticeComments({ noticeId, author }: { noticeId: number; author:
       {comments && comments.length > 0 && (
         <ul aria-label="댓글 목록" className="space-y-2">
           {comments.map((comment) => (
-            <li key={comment.id} className="flex items-start gap-2 rounded-xl bg-white/80 px-3 py-2">
+            <li key={comment.id} className="flex items-start gap-2 rounded-xl bg-white/80 px-4 py-3">
               <div className="min-w-0 flex-1">
                 <p className="whitespace-pre-wrap break-words text-sm text-slate-800">{comment.content}</p>
                 <time dateTime={comment.created_at} className="text-xs text-slate-500">

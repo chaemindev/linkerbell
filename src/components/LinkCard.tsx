@@ -13,7 +13,7 @@ interface LinkCardProps {
   name: string
   colorIndex: number
   links: Link[]
-  onAddLink: (categoryId: number, title: string, url: string) => void
+  onAddLink: (categoryId: number, title: string, url: string, colorKey?: string | null) => void
   onDeleteLink: (linkId: number, title: string) => void
   onReorderLinks?: (categoryId: number, orderedLinkIds: number[]) => void
   onDeleteCategory: (categoryId: number) => void
@@ -36,7 +36,7 @@ export function LinkCard({
   categoryDragListeners,
 }: LinkCardProps) {
   return (
-    <div className="flex flex-col gap-5 rounded-3xl bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03),0_20px_40px_-20px_rgba(15,23,42,0.14)]">
+    <div className="flex flex-col gap-5 rounded-xl bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03),0_20px_40px_-20px_rgba(15,23,42,0.14)]">
       <LinkCardHeader
         categoryId={id}
         categoryName={name}

@@ -9,12 +9,14 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { LinkColorPicker } from "@/components/common/LinkColorPicker"
+import { linkColorToStored, type LinkColorValue } from "@/lib/linkColorPalette"
 import { Plus } from "lucide-react"
 import { isValidUrl } from "@/lib/url"
 
 interface AddLinkDialogProps {
   categoryName: string
-  onAdd: (title: string, url: string) => void
+  onAdd: (title: string, url: string, colorKey?: string | null) => void
   variant?: "icon"
 }
 
@@ -22,6 +24,7 @@ export function AddLinkDialog({ categoryName, onAdd, variant }: AddLinkDialogPro
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
+  const [colorValue, setColorValue] = useState<LinkColorValue>(null)
 
   const handleSubmit = () => {
     if (!title || !url) {
@@ -32,7 +35,8 @@ export function AddLinkDialog({ categoryName, onAdd, variant }: AddLinkDialogPro
       alert("올바른 URL 형식이 아니에요. 예: example.com")
       return
     }
-    onAdd(title, url)
+    onAdd(title, url, linkColorToStored(colorValue))
+    setColorValue(null)
     setTitle("")
     setUrl("")
     setOpen(false)
@@ -80,6 +84,7 @@ export function AddLinkDialog({ categoryName, onAdd, variant }: AddLinkDialogPro
             />
           </div>
         </div>
+        <LinkColorPicker previewVariant="our-bell" value={colorValue} onChange={setColorValue} title={title} url={url} />
         <DialogFooter className="m-0 flex-row justify-end rounded-none border-0 bg-transparent p-0 pt-3">
           <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="h-10 rounded-xl px-5 text-slate-500 hover:bg-slate-100">취소</Button>
           <Button onClick={handleSubmit} className="h-10 rounded-xl border border-rose-200/60 bg-rose-100 px-6 font-semibold text-rose-900 shadow-none hover:bg-rose-200/70">

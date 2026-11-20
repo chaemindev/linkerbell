@@ -24,21 +24,20 @@ const NOTICE_DOT_COLORS = [
 
 interface NoticeItemProps {
   id: number
-  tag: string
   content: string
   author: string
   color: string
   createdAt: string
 }
 
-function NoticeItem({ id, tag, content, author, createdAt }: NoticeItemProps) {
+function NoticeItem({ id, content, author, createdAt }: NoticeItemProps) {
   const updateNotice = useLinkStore((s) => s.updateNotice)
   const deleteNotice = useLinkStore((s) => s.deleteNotice)
   const [editOpen, setEditOpen] = useState(false)
   const colorIndex = Math.abs(Math.imul(id, 2654435761)) % NOTICE_DOT_COLORS.length
 
   const handleDelete = () => {
-    if (window.confirm("이 메모를 삭제할까요?")) {
+    if (window.confirm("이 공지를 삭제할까요?")) {
       void deleteNotice(id)
     }
   }
@@ -63,7 +62,7 @@ function NoticeItem({ id, tag, content, author, createdAt }: NoticeItemProps) {
               className="h-6 shrink-0 rounded-lg px-2 text-xs bg-white/70 text-slate-500 transition-colors hover:bg-white hover:text-slate-700"
             >
               <Ellipsis className="h-4 w-4 text-slate-400" strokeWidth={2.5} aria-hidden="true" />
-              <span className="sr-only">메모 메뉴</span>
+              <span className="sr-only">공지 메뉴</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-32">
@@ -105,10 +104,9 @@ function NoticeItem({ id, tag, content, author, createdAt }: NoticeItemProps) {
         open={editOpen}
         onOpenChange={setEditOpen}
         mode="edit"
-        initialTag={tag}
         initialContent={content}
         initialAuthor={author}
-        onSubmit={(t, c, a) => updateNotice(id, { tag: t, content: c, author: a, color: "none" })}
+        onSubmit={(c, a) => updateNotice(id, { content: c, author: a, color: "none" })}
       />
     </div>
   )
@@ -130,7 +128,7 @@ export function NoticeBoardCard() {
         <Button
           variant="ghost"
           size="icon"
-          aria-label="새 메모 작성"
+          aria-label="새 공지 작성"
           className="h-9 w-9 rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
           onClick={() => setAddOpen(true)}
         >
@@ -160,7 +158,7 @@ export function NoticeBoardCard() {
         open={addOpen}
         onOpenChange={setAddOpen}
         mode="add"
-        onSubmit={(t, c, a) => addNotice(t, c, a, "none")}
+        onSubmit={(c, a) => addNotice("", c, a, "none")}
       />
     </div>
   )

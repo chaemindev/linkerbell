@@ -58,7 +58,7 @@ export function Container() {
   const fetchNotices = useLinkStore((state) => state.fetchNotices)
   const addFeaturedLink = useLinkStore((state) => state.addFeaturedLink)
   const deleteFeaturedLink = useLinkStore((state) => state.deleteFeaturedLink)
-  const addLink = useLinkStore((state) => state.addLink)
+  const addLinkWithColor = useLinkStore((state) => state.addLinkWithColor)
   const deleteLink = useLinkStore((state) => state.deleteLink)
   const reorderLinks = useLinkStore((state) => state.reorderLinks)
   const reorderCategories = useLinkStore((state) => state.reorderCategories)
@@ -88,8 +88,11 @@ export function Container() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
-  const handleAddLink = (categoryId: number, title: string, url: string) => {
-    addLink(categoryId, title, url.startsWith("http") ? url : `https://${url}`)
+  const handleAddLink = (categoryId: number, title: string, url: string, colorKey?: string | null) => {
+    void addLinkWithColor(categoryId, title, {
+      url: url.startsWith("http") ? url : `https://${url}`,
+      colorKey,
+    })
   }
 
   const handleDeleteLink = (linkId: number, title: string) => {

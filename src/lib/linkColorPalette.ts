@@ -350,3 +350,22 @@ export function getMyBellLinkCardClasses(
 ): string {
   return getMyBellLinkCardAppearance(colorKey, options).className
 }
+
+/** 흰 바탕의 링크 텍스트와 색상 선택 미리보기에 공통 적용 */
+export const LINK_TEXT_COLORS: Record<LinkColorKey, string> = {
+  default: "#334155",
+  rose: "#be3455",
+  sky: "#0369a1",
+  violet: "#6d28d9",
+  emerald: "#047857",
+  amber: "#ddb000",
+  purple: "#9333a8",
+  teal: "#0f766e",
+}
+
+export function getLinkTextColor(value: string | null | undefined): string {
+  const hex = isCustomLinkColor(value) ? normalizeHexColor(value!) : null
+  return hex
+    ? `color-mix(in srgb, ${hex} 60%, #1e293b)`
+    : LINK_TEXT_COLORS[normalizeLinkColorKey(value)]
+}

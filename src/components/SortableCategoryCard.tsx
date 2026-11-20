@@ -18,7 +18,7 @@ export interface SortableCategoryCardProps {
   }
   colorIndex: number
   categoryReorderEnabled: boolean
-  onAddLink: (categoryId: number, title: string, url: string) => void
+  onAddLink: (categoryId: number, title: string, url: string, colorKey?: string | null) => void
   onDeleteLink: (linkId: number, title: string) => void
   onReorderLinks?: (categoryId: number, orderedLinkIds: number[]) => void
   onDeleteCategory: (categoryId: number) => void

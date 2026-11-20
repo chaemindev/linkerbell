@@ -3,6 +3,9 @@ import { Input } from "@/components/ui/input"
 import {
   LINK_COLOR_KEYS,
   LINK_COLOR_STYLES,
+  LINK_TEXT_COLORS,
+  getLinkTextColor,
+  getBackgroundHexForColorKey,
   getMyBellLinkCardAppearance,
   getOurBellLinkCardAppearance,
   isCustomLinkColor,
@@ -48,14 +51,19 @@ export function LinkColorPicker({
   const activePreset = presetFromValue(value)
   const activeCustomHex =
     value && isCustomLinkColor(value) ? normalizeHexColor(value)! : null
+  const selectedHex = activeCustomHex ?? (activePreset
+    ? previewVariant === "our-bell"
+      ? LINK_TEXT_COLORS[activePreset]
+      : getBackgroundHexForColorKey(activePreset)
+    : "")
 
-  const [hexDraft, setHexDraft] = useState(activeCustomHex ?? "")
+  const [hexDraft, setHexDraft] = useState(selectedHex)
   const [hexError, setHexError] = useState(false)
 
   useEffect(() => {
-    setHexDraft(activeCustomHex ?? "")
+    setHexDraft(selectedHex)
     setHexError(false)
-  }, [value, activeCustomHex])
+  }, [value, selectedHex])
 
   const appearance =
     previewVariant === "our-bell"
@@ -77,12 +85,12 @@ export function LinkColorPicker({
     setHexError(true)
   }
 
-  const colorInputValue = activeCustomHex ?? normalizeHexColor(hexDraft) ?? "#E2E8F0"
+  const colorInputValue = normalizeHexColor(hexDraft) ?? selectedHex
 
   return (
     <div className="grid gap-3">
       <div className="grid gap-2">
-        <span className="text-sm font-semibold text-slate-700">배경색</span>
+        <span className="text-sm font-semibold text-slate-700">링크 색상</span>
         <div className="flex flex-wrap gap-1.5">
           {LINK_COLOR_KEYS.map((key) => {
             const selected = activePreset === key
@@ -91,11 +99,12 @@ export function LinkColorPicker({
                 key={key}
                 type="button"
                 aria-label={key === "default" ? "기본 색" : `${key} 색`}
+                style={previewVariant === "our-bell" ? { backgroundColor: LINK_TEXT_COLORS[key] } : undefined}
                 aria-pressed={selected}
                 onClick={() => onChange(key === "default" ? null : key)}
                 className={cn(
                   "size-5 shrink-0 rounded-full transition-transform outline-none",
-                  LINK_COLOR_STYLES[key].swatch,
+                  previewVariant === "my-bell" && LINK_COLOR_STYLES[key].swatch,
                   selected
                     ? "ring-2 ring-violet-400 ring-offset-1 scale-105"
                     : "hover:scale-105",
@@ -142,20 +151,9 @@ export function LinkColorPicker({
       <div className="grid gap-2">
         <span className="text-xs font-medium text-slate-500">미리보기</span>
         {previewVariant === "our-bell" ? (
-          <div
-            className={cn(
-              "flex h-15 min-w-0 items-center overflow-hidden rounded-[40px] border px-6 py-4 transition-colors",
-              appearance.className,
-            )}
-            style={{
-              ...appearance.style,
-              ["--link-title" as string]: appearance.textColors.title,
-              ["--link-title-hover" as string]: appearance.textColors.titleHover,
-            }}
-          >
-            <span className="line-clamp-1 text-sm font-medium tracking-tight text-(--link-title)">
-              {previewTitle}
-            </span>
+          <div className="flex min-h-12 items-center gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3">
+            <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: getLinkTextColor(value) }} />
+            <span className="line-clamp-1 text-sm font-medium" style={{ color: getLinkTextColor(value) }}>{previewTitle}</span>
           </div>
         ) : (
           <div

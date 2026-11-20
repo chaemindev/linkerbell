@@ -72,7 +72,7 @@ interface Notice {
   createdAt: string
 }
 
-interface LinkStore {
+export interface LinkStore {
   categories: Category[]
   featuredLinks: FeaturedLinks[]
   notices: Notice[]
@@ -89,6 +89,7 @@ interface LinkStore {
   ) => Promise<boolean>
   deleteNotice: (noticeId: number) => Promise<void>
   addLink: (categoryId: number, title: string, url: string) => Promise<void>
+  addLinkWithColor: (categoryId: number, title: string, link: { url: string; colorKey?: string | null }) => Promise<void>
   updateLink: (
     linkId: number,
     updates: { title?: string; url?: string; colorKey?: string | null; categoryId?: number },
@@ -106,7 +107,7 @@ interface LinkStore {
   recordFeaturedLinkClick: (featuredId: number) => void
 }
 
-export const useLinkStore = create<LinkStore>((set, get) => ({
+export const useLinkStore = create<LinkStore>()((set, get) => ({
   categories: [],
   notices: [],
 
@@ -344,7 +345,9 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
   },
 
   // 🔥 서버에 새 링크 저장하기
-  addLink: async (category_id: number, title: string, url: string) => {
+  addLink: (categoryId, title, url) => get().addLinkWithColor(categoryId, title, { url }),
+
+  addLinkWithColor: async (category_id, title, { url, colorKey }) => {
     const { data: maxRows } = await supabase
       .from("links")
       .select("sort_order")
@@ -358,7 +361,7 @@ export const useLinkStore = create<LinkStore>((set, get) => ({
 
     const { error } = await supabase
       .from('links')
-      .insert([{ category_id, page_title: title, page_url: url, sort_order: nextOrder }])
+      .insert([{ category_id, page_title: title, page_url: url, sort_order: nextOrder, color_key: colorKey ?? null }])
 
     if (error) {
       console.error('[addLink] 저장 실패:', error.message, error.details)

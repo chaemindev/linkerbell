@@ -10,8 +10,8 @@ import { EditLinkDialog } from "@/components/EditLinkDialog"
 import { LinkCardEdit } from "@/components/LinkCardEdit"
 import { sortableTransition } from "@/lib/dndSortable"
 import {
-  getLinkCardTextColors,
   getOurBellLinkCardAppearance,
+  getLinkTextColor,
   isCustomLinkColor,
   normalizeHexColor,
   normalizeLinkColorKey,
@@ -22,17 +22,6 @@ import { cn } from "@/lib/utils"
 import { useLinkStore } from "@/store/useLinkStore"
 
 /** 링크 리스트 행(플랫 스타일) 배경/점 색 — 프리셋 컬러별 */
-const FLAT_ROW_BG: Record<LinkColorKey, string> = {
-  default: "",
-  rose: "bg-rose-100/40 hover:bg-rose-100/65",
-  sky: "bg-sky-100/40 hover:bg-sky-100/65",
-  violet: "bg-violet-100/40 hover:bg-violet-100/65",
-  emerald: "bg-emerald-100/40 hover:bg-emerald-100/65",
-  amber: "bg-amber-100/40 hover:bg-amber-100/65",
-  purple: "bg-purple-100/40 hover:bg-purple-100/65",
-  teal: "bg-teal-100/40 hover:bg-teal-100/65",
-}
-
 const FLAT_ROW_DOT: Record<LinkColorKey, string> = {
   default: "bg-slate-300",
   rose: "bg-rose-300",
@@ -43,6 +32,8 @@ const FLAT_ROW_DOT: Record<LinkColorKey, string> = {
   purple: "bg-purple-300",
   teal: "bg-teal-300",
 }
+
+
 
 export interface LinkCardListItem {
   id: number
@@ -106,16 +97,14 @@ export function LinkRowContent({
   const isCustom = isCustomLinkColor(link.color_key)
   const hex = isCustom ? normalizeHexColor(link.color_key as string) : null
   const colorKey = normalizeLinkColorKey(link.color_key)
-  const customTextColors = hex ? getLinkCardTextColors(hex) : null
 
   return (
     <div
       className={cn(
-        "group flex w-full min-w-0 items-center gap-3 rounded-2xl px-4 py-3 transition-colors duration-200",
-        !isCustom && (colorKey === "default" ? "hover:bg-slate-50" : FLAT_ROW_BG[colorKey]),
+        "group flex w-full min-w-0 items-center gap-3 rounded-xl px-4 py-3 transition-colors duration-200",
+        "hover:bg-slate-50",
         sortableDrag && "cursor-grab touch-manipulation active:cursor-grabbing [-webkit-touch-callout:none]",
       )}
-      style={isCustom && hex ? { backgroundColor: `${hex}14` } : undefined}
       onContextMenu={(e) => {
         if (sortableDrag) e.preventDefault()
       }}
@@ -141,9 +130,8 @@ export function LinkRowContent({
         <span
           className={cn(
             "line-clamp-1 min-w-0 flex-1 text-[15px] font-medium tracking-tight",
-            !isCustom && "text-slate-800",
           )}
-          style={isCustom && customTextColors ? { color: customTextColors.title } : undefined}
+          style={{ color: getLinkTextColor(link.color_key) }}
         >
           {link.title}
         </span>
@@ -269,7 +257,7 @@ export function LinkCardList({
       {listBody}
 
       {items.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-100 p-8">
+        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-100 p-8">
           <p className="text-xs italic text-slate-400">저장된 링크가 없어요</p>
         </div>
       )}

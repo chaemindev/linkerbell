@@ -20,7 +20,7 @@ export interface LinkCardHeaderProps {
   categoryId: number
   categoryName: string
   colorIndex: number
-  onAddLink: (categoryId: number, title: string, url: string) => void
+  onAddLink: (categoryId: number, title: string, url: string, colorKey?: string | null) => void
   onDeleteCategory: (categoryId: number) => void
   /** 카테고리 순서 변경: 타이틀 줄만 드래그 핸들 (@dnd-kit useSortable) */
   categoryDragActivatorNodeRef?: (element: HTMLElement | null) => void
@@ -134,7 +134,7 @@ export function LinkCardHeader({
 
         <AddLinkDialog
           categoryName={categoryName}
-          onAdd={(title, url) => onAddLink(categoryId, title, url)}
+          onAdd={(title, url, colorKey) => onAddLink(categoryId, title, url, colorKey)}
           variant="icon"
         />
       </div>

@@ -13,11 +13,9 @@ export interface NoticeFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   mode: "add" | "edit"
-  initialTag?: string
   initialContent?: string
   initialAuthor?: string
   onSubmit: (
-    tag: string,
     content: string,
     author: string,
   ) => Promise<boolean> | boolean
@@ -27,19 +25,16 @@ export function NoticeFormDialog({
   open,
   onOpenChange,
   mode,
-  initialTag = "전체",
   initialContent = "",
   initialAuthor = "",
   onSubmit,
 }: NoticeFormDialogProps) {
-  const [tag, setTag] = useState(initialTag)
   const [content, setContent] = useState(initialContent)
   const [author, setAuthor] = useState(initialAuthor)
   const [wasOpen, setWasOpen] = useState(open)
   if (open !== wasOpen) {
     setWasOpen(open)
     if (open) {
-      setTag(initialTag)
       setContent(initialContent)
       setAuthor(initialAuthor)
     }
@@ -51,7 +46,7 @@ export function NoticeFormDialog({
       alert("내용을 입력해 주세요.")
       return
     }
-    const ok = await onSubmit(tag, c, author)
+    const ok = await onSubmit(c, author)
     if (ok) onOpenChange(false)
   }
 
@@ -60,20 +55,10 @@ export function NoticeFormDialog({
       <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-3xl border border-rose-100/70 bg-[#fffdfd] p-6 shadow-[0_24px_80px_-24px_rgba(88,57,77,0.25)] ring-0 sm:max-w-[440px]">
         <DialogHeader className="border-b border-rose-100/60 pb-4 pr-6">
           <DialogTitle className="text-lg font-semibold tracking-tight text-slate-800">
-            {mode === "add" ? "새 메모 작성" : "메모 수정"}
+            {mode === "add" ? "새 공지 작성" : "공지 수정"}
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-5 py-2">
-          <div className="grid gap-2">
-            <label htmlFor="notice-tag" className="text-xs font-medium text-slate-500">태그</label>
-            <Input
-              id="notice-tag"
-              placeholder="예: CONFLUENCE, 전체"
-              className="h-11 rounded-xl border-slate-200 bg-white shadow-none placeholder:text-slate-400 focus-visible:border-rose-200 focus-visible:ring-rose-100"
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
-            />
-          </div>
           <div className="grid gap-2">
             <label htmlFor="notice-content" className="text-xs font-medium text-slate-500">내용</label>
             <textarea
