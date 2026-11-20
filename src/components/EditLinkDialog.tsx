@@ -85,30 +85,30 @@ function EditLinkDialogForm({
 
   return (
     <>
-      <DialogHeader className="gap-3">
-        <DialogTitle className="pb-0 text-xl font-bold leading-tight">링크 수정</DialogTitle>
+      <DialogHeader className="border-b border-rose-100/60 pb-4 pr-6">
+        <DialogTitle className="pb-0 text-lg font-semibold tracking-tight text-slate-800 leading-tight">링크 수정</DialogTitle>
       </DialogHeader>
-      <div className="grid gap-5 py-4">
+      <div className="grid gap-5 py-2">
         <div className="grid gap-2">
-          <label htmlFor="edit-link-title" className="text-sm font-semibold text-slate-700">
+          <label htmlFor="edit-link-title" className="text-xs font-medium text-slate-500">
             링크 타이틀
           </label>
           <Input
             id="edit-link-title"
             placeholder="예: 구글"
-            className="h-11"
+            className="h-11 rounded-xl border-slate-200 bg-white shadow-none placeholder:text-slate-400 focus-visible:border-rose-200 focus-visible:ring-rose-100"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
         <div className="grid gap-2">
-          <label htmlFor="edit-link-url" className="text-sm font-semibold text-slate-700">
+          <label htmlFor="edit-link-url" className="text-xs font-medium text-slate-500">
             URL
           </label>
           <Input
             id="edit-link-url"
             placeholder="google.com"
-            className="h-11"
+            className="h-11 rounded-xl border-slate-200 bg-white shadow-none placeholder:text-slate-400 focus-visible:border-rose-200 focus-visible:ring-rose-100"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && void handleSubmit()}
@@ -116,12 +116,12 @@ function EditLinkDialogForm({
         </div>
         {categories && categories.length > 0 ? (
           <div className="grid gap-2">
-            <label htmlFor="edit-link-category" className="text-sm font-semibold text-slate-700">
+            <label htmlFor="edit-link-category" className="text-xs font-medium text-slate-500">
               카테고리
             </label>
             <select
               id="edit-link-category"
-              className="h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus-visible:border-rose-200 focus-visible:ring-2 focus-visible:ring-rose-100"
               value={categoryId ?? ""}
               onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : undefined)}
             >
@@ -141,11 +141,12 @@ function EditLinkDialogForm({
           previewVariant={previewVariant}
         />
       </div>
-      <DialogFooter>
+      <DialogFooter className="m-0 flex-row justify-end rounded-none border-0 bg-transparent p-0 pt-3">
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="h-10 rounded-xl px-5 text-slate-500 hover:bg-slate-100">취소</Button>
         <Button
           type="button"
           onClick={() => void handleSubmit()}
-          className="h-11 w-full bg-slate-900 font-bold"
+          className="h-10 rounded-xl border border-rose-200/60 bg-rose-100 px-6 font-semibold text-rose-900 shadow-none hover:bg-rose-200/70"
         >
           저장하기
         </Button>
@@ -168,7 +169,7 @@ export function EditLinkDialog({
 }: EditLinkDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-2 sm:max-w-[425px]">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-3xl border border-rose-100/70 bg-[#fffdfd] p-6 shadow-[0_24px_80px_-24px_rgba(88,57,77,0.25)] ring-0 sm:max-w-[440px]">
         {open ? (
           <EditLinkDialogForm
             key={linkId}

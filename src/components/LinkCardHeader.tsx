@@ -1,12 +1,13 @@
 import { useState } from "react"
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core"
-import { GripVertical, Heart, MoreVertical, Trash2, Edit2, BookmarkPlus } from "lucide-react"
+import { GripVertical, Heart, MoreVertical, Trash2, Edit2, Bell } from "lucide-react"
 import { useLinkStore } from "@/store/useLinkStore"
 import { useMyBellStore } from "@/store/useMyBellStore"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AddLinkDialog } from "@/components/AddLinkDialog"
@@ -50,7 +51,7 @@ export function LinkCardHeader({
   )
 
   return (
-    <div className="group/header flex shrink-0 items-center justify-between px-4">
+    <div className="group/header flex shrink-0 items-center justify-between px-2.3">
       <div className="flex min-w-0 flex-1 items-center gap-2.5">
         {categoryDragActivatorNodeRef != null &&
         categoryDragAttributes != null &&
@@ -92,16 +93,16 @@ export function LinkCardHeader({
               <span className="sr-only">카테고리 메뉴</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               onClick={() => setRenameOpen(true)}
             >
               <Edit2 className="h-3.5 w-3.5" />
-              <span className="text-s">카테고리 타이틀 수정</span>
+              <span>카테고리 타이틀 수정</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="cursor-pointer gap-2 text-red-600 focus:bg-red-50 focus:text-red-600"
+              className="gap-2 text-red-600 focus:text-red-600"
               onClick={() => {
                 if (
                   window.confirm(
@@ -113,8 +114,9 @@ export function LinkCardHeader({
               }}
             >
               <Trash2 className="h-3.5 w-3.5" />
-              <span className="text-s">카테고리 삭제</span>
+              <span>카테고리 삭제</span>
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               onClick={() => {
@@ -124,8 +126,8 @@ export function LinkCardHeader({
                 window.alert("마이벨에 카테고리와 링크를 저장했습니다.")
               }}
             >
-              <BookmarkPlus className="h-3.5 w-3.5" />
-              <span className="text-s">마이벨에 저장</span>
+              <Bell className="h-3.5 w-3.5 text-violet-400" />
+              <span>마이벨에 저장</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

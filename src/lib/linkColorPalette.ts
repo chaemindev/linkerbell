@@ -38,77 +38,77 @@ export const LINK_COLOR_STYLES: Record<LinkColorKey, ColorStyle> = {
   rose: {
     swatch: "bg-rose-200",
     ourBell: {
-      base: "border-rose-200/60 bg-rose-50 shadow-[0_1px_2px_rgba(251,113,133,0.06),0_8px_30px_-8px_rgba(251,113,133,0.08)]",
-      hover: "hover:border-rose-300/55 hover:bg-rose-100/70",
+      base: "border-rose-200/60 bg-rose-50/60 shadow-[0_1px_2px_rgba(251,113,133,0.06),0_8px_30px_-8px_rgba(251,113,133,0.08)]",
+      hover: "hover:border-rose-300/55 hover:bg-rose-50",
     },
     myBell: {
-      base: "border-rose-200/60 bg-rose-50 shadow-sm",
-      hover: "hover:border-rose-300/55 hover:bg-rose-100/70",
+      base: "border-rose-200/60 bg-rose-50/60 shadow-sm",
+      hover: "hover:border-rose-300/55 hover:bg-rose-50",
     },
   },
   sky: {
     swatch: "bg-sky-200",
     ourBell: {
-      base: "border-sky-200/60 bg-sky-50 shadow-[0_1px_2px_rgba(14,165,233,0.06),0_8px_30px_-8px_rgba(14,165,233,0.08)]",
-      hover: "hover:border-sky-300/55 hover:bg-sky-100/70",
+      base: "border-sky-200/60 bg-sky-50/60 shadow-[0_1px_2px_rgba(14,165,233,0.06),0_8px_30px_-8px_rgba(14,165,233,0.08)]",
+      hover: "hover:border-sky-300/55 hover:bg-sky-50",
     },
     myBell: {
-      base: "border-sky-200/60 bg-sky-50 shadow-sm",
-      hover: "hover:border-sky-300/55 hover:bg-sky-100/70",
+      base: "border-sky-200/60 bg-sky-50/60 shadow-sm",
+      hover: "hover:border-sky-300/55 hover:bg-sky-50",
     },
   },
   violet: {
     swatch: "bg-violet-200",
     ourBell: {
-      base: "border-violet-200/55 bg-violet-50 shadow-[0_1px_2px_rgba(139,92,246,0.06),0_8px_30px_-8px_rgba(139,92,246,0.08)]",
+      base: "border-violet-200/55 bg-violet-50/60 shadow-[0_1px_2px_rgba(139,92,246,0.06),0_8px_30px_-8px_rgba(139,92,246,0.08)]",
       hover: "hover:border-violet-300/50 hover:bg-violet-100/65",
     },
     myBell: {
-      base: "border-violet-200/55 bg-violet-50 shadow-sm",
+      base: "border-violet-200/55 bg-violet-50/60 shadow-sm",
       hover: "hover:border-violet-300/50 hover:bg-violet-100/65",
     },
   },
   emerald: {
     swatch: "bg-emerald-200",
     ourBell: {
-      base: "border-emerald-200/55 bg-emerald-50 shadow-[0_1px_2px_rgba(16,185,129,0.06),0_8px_30px_-8px_rgba(16,185,129,0.08)]",
+      base: "border-emerald-200/55 bg-emerald-50/60 shadow-[0_1px_2px_rgba(16,185,129,0.06),0_8px_30px_-8px_rgba(16,185,129,0.08)]",
       hover: "hover:border-emerald-300/50 hover:bg-emerald-100/65",
     },
     myBell: {
-      base: "border-emerald-200/55 bg-emerald-50 shadow-sm",
+      base: "border-emerald-200/55 bg-emerald-50/60 shadow-sm",
       hover: "hover:border-emerald-300/50 hover:bg-emerald-100/65",
     },
   },
   amber: {
     swatch: "bg-amber-200",
     ourBell: {
-      base: "border-amber-200/55 bg-amber-50 shadow-[0_1px_2px_rgba(245,158,11,0.06),0_8px_30px_-8px_rgba(245,158,11,0.08)]",
+      base: "border-amber-200/55 bg-amber-50/60 shadow-[0_1px_2px_rgba(245,158,11,0.06),0_8px_30px_-8px_rgba(245,158,11,0.08)]",
       hover: "hover:border-amber-300/50 hover:bg-amber-100/65",
     },
     myBell: {
-      base: "border-amber-200/55 bg-amber-50 shadow-sm",
+      base: "border-amber-200/55 bg-amber-50/60 shadow-sm",
       hover: "hover:border-amber-300/50 hover:bg-amber-100/65",
     },
   },
   purple: {
     swatch: "bg-purple-200",
     ourBell: {
-      base: "border-purple-200/55 bg-purple-50 shadow-[0_1px_2px_rgba(168,85,247,0.06),0_8px_30px_-8px_rgba(168,85,247,0.08)]",
+      base: "border-purple-200/55 bg-purple-50/60 shadow-[0_1px_2px_rgba(168,85,247,0.06),0_8px_30px_-8px_rgba(168,85,247,0.08)]",
       hover: "hover:border-purple-300/50 hover:bg-purple-100/65",
     },
     myBell: {
-      base: "border-purple-200/55 bg-purple-50 shadow-sm",
+      base: "border-purple-200/55 bg-purple-50/60 shadow-sm",
       hover: "hover:border-purple-300/50 hover:bg-purple-100/65",
     },
   },
   teal: {
     swatch: "bg-teal-200",
     ourBell: {
-      base: "border-teal-200/55 bg-teal-50 shadow-[0_1px_2px_rgba(20,184,166,0.06),0_8px_30px_-8px_rgba(20,184,166,0.08)]",
+      base: "border-teal-200/55 bg-teal-50/60 shadow-[0_1px_2px_rgba(20,184,166,0.06),0_8px_30px_-8px_rgba(20,184,166,0.08)]",
       hover: "hover:border-teal-300/50 hover:bg-teal-100/65",
     },
     myBell: {
-      base: "border-teal-200/55 bg-teal-50 shadow-sm",
+      base: "border-teal-200/55 bg-teal-50/60 shadow-sm",
       hover: "hover:border-teal-300/50 hover:bg-teal-100/65",
     },
   },
@@ -267,10 +267,10 @@ function customOurBellAppearance(hex: string, dragOverlay?: boolean): LinkCardAp
     className:
       "border shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_30px_-8px_rgba(0,0,0,0.06)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.05),0_14px_40px_-10px_rgba(0,0,0,0.08)]",
     style: {
-      backgroundColor: hex,
+      backgroundColor: `color-mix(in srgb, ${hex} 45%, white)`,
       borderColor: rgbaFromHex(hex, 0.45),
     },
-    textColors: getLinkCardTextColors(hex),
+    textColors: LIGHT_CARD_TEXT,
   }
 }
 
@@ -285,10 +285,10 @@ function customMyBellAppearance(hex: string, dragOverlay?: boolean): LinkCardApp
   return {
     className: "border shadow-sm hover:shadow-md",
     style: {
-      backgroundColor: hex,
+      backgroundColor: `color-mix(in srgb, ${hex} 45%, white)`,
       borderColor: rgbaFromHex(hex, 0.45),
     },
-    textColors: getLinkCardTextColors(hex),
+    textColors: LIGHT_CARD_TEXT,
   }
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useId, useState, type FormEvent } from "react"
-import { Trash2 } from "lucide-react"
+import { MessageCircle, ChevronDown, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toRelativeTimeKo } from "@/lib/relativeTime"
 import { supabase } from "@/lib/supabase"
@@ -13,8 +13,10 @@ interface NoticeComment {
   created_at: string
 }
 
-export function NoticeComments({ noticeId }: { noticeId: number }) {
+export function NoticeComments({ noticeId, author }: { noticeId: number; author: string }) {
   const inputId = useId()
+  const panelId = useId()
+  const [expanded, setExpanded] = useState(false)
   const [comments, setComments] = useState<NoticeComment[] | null>(null)
   const [draft, setDraft] = useState("")
   const [error, setError] = useState("")
@@ -86,8 +88,23 @@ export function NoticeComments({ noticeId }: { noticeId: number }) {
   }
 
   return (
-    <div className="mt-3 space-y-2 border-t border-slate-400/25 pt-3">
-      <h4 className="text-xs font-semibold text-slate-400">comment</h4>
+    <div className="mt-2 border-t border-slate-200 pt-2">
+      <div className="flex items-center justify-between gap-2">
+      <span className="min-w-0 truncate text-xs text-slate-500">{author}</span>
+      <button
+        type="button"
+        aria-label={expanded ? "댓글 접기" : "댓글 펼치기"}
+        aria-expanded={expanded}
+        aria-controls={panelId}
+        onClick={() => setExpanded((value) => !value)}
+        className="flex items-center gap-2 rounded-lg py-1 text-sm text-slate-600 hover:text-slate-900"
+      >
+        <MessageCircle className="h-4 w-4" aria-hidden="true" />
+        <span>{comments ? comments.length : "—"}</span>
+        <ChevronDown className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
+      </div>
+      <div id={panelId} hidden={!expanded} className="mt-3 space-y-2 border-t border-slate-300/30 pt-3">
       {comments && comments.length > 0 && (
         <ul aria-label="댓글 목록" className="space-y-2">
           {comments.map((comment) => (
@@ -136,9 +153,10 @@ export function NoticeComments({ noticeId }: { noticeId: number }) {
           className="rounded-xl border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
           disabled={!comments || busy || !draft.trim()}
         >
-          +
+          등록
         </Button>
       </form>
+      </div>
     </div>
   )
 }

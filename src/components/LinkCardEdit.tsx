@@ -1,4 +1,4 @@
-import { Bell, Edit2, PenLine, Trash2 } from "lucide-react"
+import { Bell, Edit2, Ellipsis, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -37,7 +37,7 @@ export function LinkCardEdit({
         "flex shrink-0 items-center transition-opacity",
         keepVisible
           ? "opacity-100"
-          : "opacity-100 md:opacity-0 md:group-hover:opacity-100",
+          : "opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100",
       )}
     >
       <DropdownMenu onOpenChange={onMenuOpenChange}>
@@ -45,9 +45,9 @@ export function LinkCardEdit({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700 data-[state=open]:bg-slate-200 data-[state=open]:text-slate-700"
+            className="h-7 w-7 rounded-lg bg-transparent text-slate-400 transition-colors hover:bg-white/70 hover:text-slate-700 focus-visible:bg-white/70 data-[state=open]:bg-white/80 data-[state=open]:text-slate-700"
           >
-            <PenLine className="h-4 w-4" />
+            <Ellipsis className="h-4 w-4" />
             <span className="sr-only">링크 메뉴</span>
           </Button>
         </DropdownMenuTrigger>

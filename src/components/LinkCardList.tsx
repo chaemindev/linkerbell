@@ -24,24 +24,24 @@ import { useLinkStore } from "@/store/useLinkStore"
 /** 링크 리스트 행(플랫 스타일) 배경/점 색 — 프리셋 컬러별 */
 const FLAT_ROW_BG: Record<LinkColorKey, string> = {
   default: "",
-  rose: "bg-rose-100/70 hover:bg-rose-200/60",
-  sky: "bg-sky-100/70 hover:bg-sky-200/60",
-  violet: "bg-violet-100/70 hover:bg-violet-200/60",
-  emerald: "bg-emerald-100/70 hover:bg-emerald-200/60",
-  amber: "bg-amber-100/70 hover:bg-amber-200/60",
-  purple: "bg-purple-100/70 hover:bg-purple-200/60",
-  teal: "bg-teal-100/70 hover:bg-teal-200/60",
+  rose: "bg-rose-100/40 hover:bg-rose-100/65",
+  sky: "bg-sky-100/40 hover:bg-sky-100/65",
+  violet: "bg-violet-100/40 hover:bg-violet-100/65",
+  emerald: "bg-emerald-100/40 hover:bg-emerald-100/65",
+  amber: "bg-amber-100/40 hover:bg-amber-100/65",
+  purple: "bg-purple-100/40 hover:bg-purple-100/65",
+  teal: "bg-teal-100/40 hover:bg-teal-100/65",
 }
 
 const FLAT_ROW_DOT: Record<LinkColorKey, string> = {
   default: "bg-slate-300",
-  rose: "bg-rose-400",
-  sky: "bg-sky-400",
-  violet: "bg-violet-400",
-  emerald: "bg-emerald-400",
-  amber: "bg-amber-400",
-  purple: "bg-purple-400",
-  teal: "bg-teal-400",
+  rose: "bg-rose-300",
+  sky: "bg-sky-300",
+  violet: "bg-violet-300",
+  emerald: "bg-emerald-300",
+  amber: "bg-amber-300",
+  purple: "bg-purple-300",
+  teal: "bg-teal-300",
 }
 
 export interface LinkCardListItem {
@@ -115,7 +115,7 @@ export function LinkRowContent({
         !isCustom && (colorKey === "default" ? "hover:bg-slate-50" : FLAT_ROW_BG[colorKey]),
         sortableDrag && "cursor-grab touch-manipulation active:cursor-grabbing [-webkit-touch-callout:none]",
       )}
-      style={isCustom && hex ? { backgroundColor: `${hex}26` } : undefined}
+      style={isCustom && hex ? { backgroundColor: `${hex}14` } : undefined}
       onContextMenu={(e) => {
         if (sortableDrag) e.preventDefault()
       }}
@@ -135,7 +135,7 @@ export function LinkRowContent({
       >
         <span
           className={cn("size-2 shrink-0 rounded-full", !isCustom && FLAT_ROW_DOT[colorKey])}
-          style={isCustom && hex ? { backgroundColor: hex } : undefined}
+          style={isCustom && hex ? { backgroundColor: hex, opacity: 0.6 } : undefined}
           aria-hidden
         />
         <span

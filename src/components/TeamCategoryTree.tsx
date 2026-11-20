@@ -84,7 +84,7 @@ export function TeamCategoryTree() {
                     >
                       <Link2
                         aria-hidden="true"
-                        className="h-3 w-3 shrink-0 text-slate-400"
+                        className="h-3 w-3 shrink-0 text-slate-400 opacity-60"
                         style={{ color: isCustomLinkColor(link.color_key)
                           ? normalizeHexColor(link.color_key!) ?? LINK_ICON_COLORS.default
                           : LINK_ICON_COLORS[normalizeLinkColorKey(link.color_key)] }}

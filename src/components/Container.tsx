@@ -181,7 +181,7 @@ export function Container() {
       : null
 
   const grid = (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,max(18rem,calc((100%_-_5rem)/5))),1fr))] gap-5 xl:grid-cols-[repeat(auto-fit,minmax(min(100%,max(18rem,calc((100%_-_8rem)/5))),1fr))] xl:gap-8">
+    <div className="grid grid-cols-1 gap-5 @min-[40rem]:grid-cols-[1.15fr_1fr] @min-[60rem]:grid-cols-[1.15fr_repeat(2,minmax(0,1fr))] @min-[80rem]:grid-cols-[1.15fr_repeat(3,minmax(0,1fr))] @min-[100rem]:grid-cols-[1.15fr_repeat(4,minmax(0,1fr))] xl:gap-8">
       <NoticeBoardCard />
       {categories.map((category, index) => (
         <SortableCategoryCard
@@ -200,7 +200,7 @@ export function Container() {
 
   return (
     <div className="flex w-full flex-1 flex-col lg:flex-row">
-      <aside aria-label="우리벨 사이드 영역" className={`relative shrink-0 bg-white/90 ${sidebarCollapsed ? "w-0 p-0" : "w-full border-b p-4 lg:w-75 lg:border-b-0 lg:border-r"}`}>
+      <aside aria-label="우리벨 사이드 영역" className={`relative hidden shrink-0 bg-white/90 lg:block ${sidebarCollapsed ? "w-0 p-0" : "w-full border-b p-4 lg:w-75 lg:border-b-0 lg:border-r"}`}>
         <div className={`absolute right-0 top-0 z-20 translate-x-full ${sidebarCollapsed ? "" : "max-lg:right-4 max-lg:translate-x-0"}`}>
           <button
             type="button"
@@ -209,7 +209,7 @@ export function Container() {
             aria-expanded={!sidebarCollapsed}
             aria-controls="team-sidebar-content"
             onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
-            className="flex h-7 w-5 items-center justify-center border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-slate-400"
+            className="flex h-6 w-4 items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-slate-400"
           >
             {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
@@ -223,7 +223,7 @@ export function Container() {
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-      <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-10 xl:px-10">
+      <main className="@container min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-10 xl:px-10">
       <PageTitle />
       <FeaturedLinksRow
         links={
