@@ -182,7 +182,7 @@ export function WeatherWidget({ sidebar = false }: { sidebar?: boolean }) {
   const info = weather ? describeWeather(weather.code, weather.day) : null
   const upcoming = (weather?.hourly ?? []).filter((hour) => Date.parse(hour.time) > now.getTime())
   return (
-    <details ref={detailsRef} className={`weather-widget relative shrink-0 ${sidebar ? "w-full" : ""}`}>
+    <details ref={detailsRef} className={`weather-widget relative shrink-0 ${sidebar ? "w-full" : ""} ${info?.effect === "rain" ? "weather-widget-rain" : ""}`}>
       <summary className={sidebar
         ? "flex w-full cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-2 rounded-xl bg-pink-50 p-2.5 text-xs text-stone-500 outline-none focus-visible:ring-2 focus-visible:ring-pink-200"
         : "flex cursor-pointer list-none items-center gap-0.5 rounded-xl px-3 py-3 text-xs text-stone-500 outline-none transition-colors bg-pink-50 focus-visible:ring-2 focus-visible:ring-pink-200 sm:gap-3"} aria-label={`${date} ${weekday}, ${locationLabel} ${info?.label ?? "날씨"} ${weather ? `${Math.round(weather.temperature)}도` : error ? "조회 실패" : "불러오는 중"}. 날씨 상세 열기`}>

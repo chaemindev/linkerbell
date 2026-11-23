@@ -242,7 +242,7 @@ export function MyBellCategorySection({
       className={cn("space-y-3", catIsDragging && "relative z-10")}
     >
       {/* 헤더 */}
-      <div className="flex items-center gap-1.5">
+      <div className="my-bell-category-header flex items-center gap-1.5">
         {categoryReorderEnabled ? (
           <button
             ref={setCatActivatorNodeRef}
@@ -294,7 +294,7 @@ export function MyBellCategorySection({
           <>
             <button
               type="button"
-              className="min-w-0 truncate text-base font-bold text-slate-800 transition-colors hover:text-violet-600"
+              className="my-bell-category-title min-w-0 truncate text-base font-bold text-slate-800 transition-colors hover:text-violet-600"
               onClick={openRename}
             >
               {name}
@@ -363,7 +363,7 @@ export function MyBellCategorySection({
       {/* 링크 목록 */}
       {links.length === 0 && !adding ? (
         <div
-          className="flex h-20 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-100 text-slate-400 transition-colors hover:border-violet-200 hover:text-violet-400"
+          className="my-bell-add-link flex h-20 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-100 text-slate-400 transition-colors hover:border-violet-200 hover:text-violet-400"
           onClick={startAdding}
         >
           <Plus className="h-3.5 w-3.5" />

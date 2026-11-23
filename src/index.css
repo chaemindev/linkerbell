@@ -323,6 +323,18 @@
 .weather-shell:has(.weather-snow, .weather-rain) .weather-page-title .weather-page-subtitle {
   color: #304c6b;
 }
+.weather-shell:has(.weather-snow, .weather-rain) :is(.my-bell-category-header button:has(> svg), .my-bell-add-link) {
+  color: #f2f8ff;
+}
+.weather-shell:has(.weather-snow, .weather-rain) .my-bell-category-header button:has(> svg):is(:hover, :focus-visible) {
+  background-color: #355574;
+}
+.weather-shell:has(.weather-snow, .weather-rain) .my-bell-category-title {
+  color: #10243a;
+}
+.weather-widget-rain > summary {
+  background-color: #e0efff;
+}
 .weather-shell:has(.weather-snow, .weather-rain) [aria-labelledby="featured-links-heading"] .group\/item > span {
   color: #294563;
 }
