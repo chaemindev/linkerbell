@@ -1,3 +1,4 @@
+import { DebouncedLink } from "@/components/common/DebouncedLink"
 import { useState, type Dispatch, type SetStateAction } from "react"
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core"
 import {
@@ -111,7 +112,7 @@ export function LinkRowContent({
       {...sortableDrag?.attributes}
       {...sortableDrag?.listeners}
     >
-      <a
+      <DebouncedLink
         href={normalizeLinkHref(link.url) ?? undefined}
         title={normalizeLinkHref(link.url) ?? link.url}
         target="_blank"
@@ -135,7 +136,7 @@ export function LinkRowContent({
         >
           {link.title}
         </span>
-      </a>
+      </DebouncedLink>
       <div
         className="relative z-10 shrink-0 touch-manipulation"
         onPointerDown={(e) => e.stopPropagation()}

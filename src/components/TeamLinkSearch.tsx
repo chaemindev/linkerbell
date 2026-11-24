@@ -1,3 +1,4 @@
+import { DebouncedLink } from "@/components/common/DebouncedLink"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Search } from "lucide-react"
 import { normalizeLinkHref } from "@/lib/url"
@@ -162,7 +163,7 @@ export function TeamLinkSearch() {
                     <ul className="pb-2">
                       {group.links.map((link) => (
                         <li key={`${group.categoryId}-${link.id}`} role="option">
-                          <a
+                          <DebouncedLink
                             href={normalizeLinkHref(link.url) ?? undefined}
                             title={normalizeLinkHref(link.url) ?? link.url}
                             target="_blank"
@@ -180,7 +181,7 @@ export function TeamLinkSearch() {
                             }}
                           >
                             <span className="line-clamp-2">{link.title}</span>
-                          </a>
+                          </DebouncedLink>
                         </li>
                       ))}
                     </ul>

@@ -1,3 +1,4 @@
+import { DebouncedLink } from "@/components/common/DebouncedLink"
 import { MousePointer2 } from "lucide-react"
 import { getMyBellLinkCardAppearance } from "@/lib/linkColorPalette"
 import { normalizeLinkHref } from "@/lib/url"
@@ -37,7 +38,7 @@ export function MyBellLinkCard({
   const appearance = getMyBellLinkCardAppearance(colorKey, { dragOverlay })
 
   return (
-    <a
+    <DebouncedLink
       href={normalizeLinkHref(url) ?? undefined}
       title={normalizeLinkHref(url) ?? url}
       target="_blank"
@@ -73,6 +74,6 @@ export function MyBellLinkCard({
           </span>
         </div>
       </div>
-    </a>
+    </DebouncedLink>
   )
 }

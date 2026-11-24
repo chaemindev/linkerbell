@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import {
   LINK_COLOR_KEYS,
@@ -57,13 +57,14 @@ export function LinkColorPicker({
       : getBackgroundHexForColorKey(activePreset)
     : "")
 
-  const [hexDraft, setHexDraft] = useState(selectedHex)
-  const [hexError, setHexError] = useState(false)
+  const [draft, setDraft] = useState({ value, selectedHex, text: selectedHex })
+  if (draft.value !== value || draft.selectedHex !== selectedHex) {
+    setDraft({ value, selectedHex, text: selectedHex })
+  }
 
-  useEffect(() => {
-    setHexDraft(selectedHex)
-    setHexError(false)
-  }, [value, selectedHex])
+  const hexDraft = draft.text
+  const normalizedDraft = normalizeHexColor(hexDraft)
+  const hexError = Boolean(hexDraft.trim() && !normalizedDraft)
 
   const appearance =
     previewVariant === "our-bell"
@@ -71,21 +72,12 @@ export function LinkColorPicker({
       : getMyBellLinkCardAppearance(value)
 
   const applyHexDraft = (raw: string) => {
-    setHexDraft(raw)
+    setDraft({ value, selectedHex, text: raw })
     const normalized = normalizeHexColor(raw)
-    if (normalized) {
-      setHexError(false)
-      onChange(normalized)
-      return
-    }
-    if (!raw.trim()) {
-      setHexError(false)
-      return
-    }
-    setHexError(true)
+    if (normalized) onChange(normalized)
   }
 
-  const colorInputValue = normalizeHexColor(hexDraft) ?? selectedHex
+  const colorInputValue = normalizedDraft ?? selectedHex
 
   return (
     <div className="grid gap-3">
@@ -134,10 +126,8 @@ export function LinkColorPicker({
             value={hexDraft}
             onChange={(e) => applyHexDraft(e.target.value)}
             onBlur={() => {
-              const normalized = normalizeHexColor(hexDraft)
-              if (normalized) {
-                setHexDraft(normalized)
-                setHexError(false)
+              if (normalizedDraft) {
+                setDraft({ value, selectedHex, text: normalizedDraft })
               }
             }}
             maxLength={7}

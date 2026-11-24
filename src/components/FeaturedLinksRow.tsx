@@ -1,3 +1,4 @@
+import { DebouncedLink } from "@/components/common/DebouncedLink"
 import { Plus, X } from "lucide-react"
 import { faviconPublicUrl } from "@/lib/faviconUrl"
 import { normalizeLinkHref } from "@/lib/url"
@@ -97,7 +98,7 @@ export function FeaturedLinksRow({
             className="group/item flex w-16 shrink-0 flex-col items-center gap-1.5 touch-manipulation sm:w-[4.5rem]"
           >
             <div className="relative">
-              <a
+              <DebouncedLink
                 href={normalizeLinkHref(item.url) ?? undefined}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -136,7 +137,7 @@ export function FeaturedLinksRow({
                     {titleInitial(item.title)}
                   </span>
                 )}
-              </a>
+              </DebouncedLink>
               {canDelete ? (
                 <button
                   type="button"

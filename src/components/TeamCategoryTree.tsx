@@ -1,3 +1,4 @@
+import { DebouncedLink } from "@/components/common/DebouncedLink"
 import { ChevronRight, Heart, Link2, Plus, ChevronUp, ChevronDown } from "lucide-react"
 import { useRef, useState } from "react"
 import { AddCategoryDialog } from "@/components/AddCategoryDialog"
@@ -74,7 +75,7 @@ export function TeamCategoryTree() {
               <ul className="mb-2 ml-3.5 space-y-0.5 border-l border-slate-200 pl-2">
                 {category.links.map((link) => (
                   <li key={link.id}>
-                    <a
+                    <DebouncedLink
                       href={normalizeLinkHref(link.url) ?? undefined}
                       title={link.url}
                       target="_blank"
@@ -90,7 +91,7 @@ export function TeamCategoryTree() {
                           : LINK_ICON_COLORS[normalizeLinkColorKey(link.color_key)] }}
                       />
                       <span className="min-w-0 break-words">{link.title}</span>
-                    </a>
+                    </DebouncedLink>
                   </li>
                 ))}
                 {category.links.length === 0 && (

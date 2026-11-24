@@ -1,3 +1,4 @@
+import { DebouncedLink } from "@/components/common/DebouncedLink"
 import { useRef, useState } from "react"
 import { Check, ChevronDown, ChevronRight, Pencil, Plus, X } from "lucide-react"
 import { useMyBellStore } from "@/store/useMyBellStore"
@@ -68,7 +69,7 @@ function CategoryTreeItem({ cat, index }: { cat: Category; index: number }) {
           ) : (
             cat.links.map((link) => (
               <li key={link.id}>
-                <a
+                <DebouncedLink
                   href={link.url}
                   title={link.url}
                   target="_blank"
@@ -76,7 +77,7 @@ function CategoryTreeItem({ cat, index }: { cat: Category; index: number }) {
                   className="block truncate rounded px-2 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
                 >
                   {link.title}
-                </a>
+                </DebouncedLink>
               </li>
             ))
           )}
@@ -240,7 +241,7 @@ export function MyBellSidebar({ categories, recentLinks, onAddCategory }: Props)
               ]
               return (
                 <li key={link.id}>
-                  <a
+                  <DebouncedLink
                     href={link.url}
                   title={link.url}
                     target="_blank"
@@ -262,7 +263,7 @@ export function MyBellSidebar({ categories, recentLinks, onAddCategory }: Props)
                         {getDomain(link.url)}
                       </p>
                     </div>
-                  </a>
+                  </DebouncedLink>
                 </li>
               )
             })}
