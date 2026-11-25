@@ -17,6 +17,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable"
 import { useMyBellStore } from "@/store/useMyBellStore"
+import { MyBellTodoList } from "@/components/my-bell/MyBellTodoList"
 import { MyBellTopBar } from "@/components/my-bell/MyBellTopBar"
 import { MyBellSidebar } from "@/components/my-bell/MyBellSidebar"
 import { MyBellCategorySection } from "@/components/my-bell/MyBellCategorySection"
@@ -149,7 +150,8 @@ export default function MyBell() {
               items={categoriesWithLinks.map((c) => `category-${c.id}`)}
               strategy={rectSortingStrategy}
             >
-              <div className="grid grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                <MyBellTodoList />
                 {categoriesWithLinks.map((cat) => (
                   <MyBellCategorySection
                     key={cat.id}
@@ -162,7 +164,7 @@ export default function MyBell() {
                 ))}
 
                 {categoriesWithLinks.length === 0 && (
-                  <div className="col-span-3 flex h-40 items-center justify-center rounded-2xl border-2 border-dashed border-slate-200">
+                  <div className="flex h-40 items-center justify-center rounded-2xl border-2 border-dashed border-slate-200">
                     <p className="text-sm text-slate-400">
                       사이드바에서 카테고리를 추가해 보세요
                     </p>
