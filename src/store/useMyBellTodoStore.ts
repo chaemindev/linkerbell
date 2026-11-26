@@ -1,4 +1,5 @@
 import { getSeoulDateKey } from "@/lib/birthday"
+import { arrayMove } from "@dnd-kit/sortable"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
@@ -15,6 +16,7 @@ interface TodoStore {
   toggleTodo: (id: string) => void
   renameTodo: (id: string, value: string) => void
   deleteTodo: (id: string) => void
+  moveTodo: (id: string, overId: string) => void
 }
 
 const storageKey = "mybell-todos"
@@ -39,6 +41,13 @@ export const useMyBellTodoStore = create<TodoStore>()(
       deleteTodo: (id) => set((state) => ({
         todos: state.todos.filter((todo) => todo.id !== id),
       })),
+      moveTodo: (id, overId) =>
+        set((state) => {
+          const from = state.todos.findIndex((todo) => todo.id === id)
+          const to = state.todos.findIndex((todo) => todo.id === overId)
+          if (from < 0 || to < 0 || state.todos[from].date !== state.todos[to].date) return state
+          return { todos: arrayMove(state.todos, from, to) }
+        }),
       toggleTodo: (id) =>
         set((state) => ({
           todos: state.todos.map((todo) =>
