@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Plus, ArrowRight, Star, Ellipsis } from "lucide-react"
+import { Plus, ArrowDown, Star, Ellipsis } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -149,7 +149,7 @@ export function NoticeBoardCard() {
             disabled={visibleCount >= notices.length}
             onClick={() => setVisibleCount((count) => count + NOTICE_PAGE_SIZE)}
           >
-            더보기 <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            더보기 <ArrowDown className="h-4 w-4" aria-hidden="true" />
           </Button>
         )}
       </div>
